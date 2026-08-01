@@ -43,6 +43,7 @@ skills.
 | `/compact` | Summarizes the conversation into a short recap and frees up context while keeping the thread. Also takes instructions about what to preserve. | `/compact keep the API decisions` |
 | `/resume` | Opens a list of previous sessions and continues the one you pick — with all of its context. | `/resume` |
 | `/memory` | Opens the memory files (project- and user-level `CLAUDE.md`) for editing in your editor. | `/memory` |
+| `/cd` | Moves the session to a new working directory — every tool call and relative path resolves from there. Handy for hopping between projects without restarting. | `/cd ../claude-library` |
 
 :::tip[When to `/clear`, when to `/compact`]
 `/clear` — when the next task has nothing to do with the last one. `/compact` — when you're
@@ -69,6 +70,15 @@ continuing the same work but the context has grown heavy.
 | `/mcp` | Manages MCP servers: connection status, available tools, OAuth authentication. | `/mcp` |
 | `/permissions` | Review and edit the permission rules — what's allowed, what asks, and what's denied. | `/permissions` |
 | `/review` | Reviews a pull request and leaves comments on the code. | `/review 271` |
+
+## My custom commands
+
+Personal commands live as Markdown files in `~/.claude/commands/` — the file name becomes the
+command name. These are mine:
+
+| Command | What it does | Status |
+| --- | --- | --- |
+| `/cleanup` | Planned: tidy up the working diff — dead code, stray `console.log`s, unused imports. | Not created yet — will live in `~/.claude/commands/cleanup.md` |
 
 ## Habits worth forming
 
