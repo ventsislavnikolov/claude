@@ -1,0 +1,151 @@
+---
+title: Скилове
+description: Какво са skills в Claude Code, как се извикват, къде живеят и как се пише прост SKILL.md.
+sidebar:
+  label: Скилове
+  icon: sparkles
+---
+
+**Skill** е пакет от инструкции, който учи Claude как да свърши определен вид задача — стъпките за
+deploy, checklist за code review, конвенциите на конкретен модул. Вместо да обясняваш едно и също
+всеки път, го записваш веднъж като skill.
+
+Ключовото е, че skill-овете се зареждат **при нужда**. В контекста стои само кратко описание;
+пълните инструкции влизат едва когато задачата ги изисква. Затова можеш да имаш много скилове, без
+да натовариш сесията.
+
+## Как се извикват
+
+<Columns cols={2}>
+  <Column>
+    <Card title="Ръчно" icon="mouse-pointer-click">
+      Пишеш `/име-на-скила` в промпта — както всяка друга slash команда.
+    </Card>
+  </Column>
+  <Column>
+    <Card title="Автоматично" icon="wand-sparkles">
+      Claude сам разпознава по `description`, че скилът пасва на задачата, и го зарежда.
+    </Card>
+  </Column>
+</Columns>
+
+Затова `description` е най-важното поле: то е единственото, което Claude вижда, преди да реши дали
+да отвори скила.
+
+```text
+/create-commit
+/deploy-staging
+```
+
+Скиловете от plugin се извикват с префикс — името на плъгина, двоеточие, името на скила:
+
+```text
+/mattpocock-skills:tdd
+```
+
+## Къде живеят
+
+| Място | Обхват | Кога го използваш |
+| --- | --- | --- |
+| `.claude/skills/<име>/SKILL.md` | Само този проект | Конвенции, команди и процеси, специфични за репото. Комитва се с кода. |
+| `~/.claude/skills/<име>/SKILL.md` | Всички твои проекти | Лични навици и работни процеси, които носиш навсякъде. |
+| Plugins | Според инсталацията | Готови набори от скилове, инсталирани наведнъж. |
+| Marketplace | Според инсталацията | Публични колекции — добавяш marketplace, после инсталираш плъгин от него. |
+
+<FileTree>
+
+- .claude/
+  - skills/
+    - deploy-staging/
+      - SKILL.md
+    - review-checklist/
+      - SKILL.md
+      - references/
+        - checklist.md
+      - scripts/
+        - lint.sh
+- CLAUDE.md
+
+</FileTree>
+
+:::note
+Директорията е винаги `<име-на-скила>/SKILL.md` — папката дава името, файлът винаги се казва
+`SKILL.md`.
+:::
+
+## Прост SKILL.md
+
+Минималният скил е YAML frontmatter с `name` и `description`, следван от Markdown инструкции:
+
+````markdown SKILL.md
+---
+name: deploy-staging
+description: Deploy-ва текущия branch към staging. Use when the user asks to deploy, ship, or push to staging.
+---
+
+# Deploy към staging
+
+## Преди deploy
+
+1. Провери, че тестовете минават: `pnpm test`
+2. Провери, че няма uncommitted промени: `git status`
+
+## Deploy
+
+```bash
+pnpm build
+pnpm exec vercel deploy --prebuilt
+```
+
+## След deploy
+
+Провери health endpoint-а и докладвай URL-а на deployment-а.
+````
+
+### Какво прави описанието добро
+
+<Accordion>
+  <AccordionItem title="Казва КАКВО прави и КОГА да се използва" icon="target">
+    Двете заедно. Само „Deploy-ва към staging" не е достатъчно — добави
+    „Use when the user asks to deploy or ship".
+  </AccordionItem>
+  <AccordionItem title="Съдържа думите, които реално ще напишеш" icon="type">
+    Ако казваш „пусни го на staging", сложи „staging" и „пусни" в описанието. Съвпадението е по
+    смисъл, но конкретните думи помагат.
+  </AccordionItem>
+  <AccordionItem title="Кратко е" icon="scissors">
+    Едно-две изречения. Описанието стои в контекста постоянно — дългото описание струва токени при
+    всяка сесия.
+  </AccordionItem>
+</Accordion>
+
+## Допълнителни файлове
+
+Скилът не е само един файл. До `SKILL.md` можеш да сложиш:
+
+- **`references/`** — дълги справочни материали, които Claude чете само когато му потрябват.
+- **`scripts/`** — готови скриптове, които скилът извиква, вместо да ги пише наново всеки път.
+- **`assets/`** — шаблони, конфигурации, patch файлове.
+
+Идеята е `SKILL.md` да остане кратък и да сочи към останалото: „за пълния списък провери
+`references/checklist.md`".
+
+## Skill или субагент?
+
+| | Skill | Субагент |
+| --- | --- | --- |
+| Какво е | Инструкции за текущата сесия | Отделна сесия със собствен контекст |
+| Контекст | Влиза в твоя контекст | Има свой, изолиран контекст |
+| Кога | Процедура, която Claude трябва да следва | Голяма задача, чиито междинни стъпки не искаш в основния разговор |
+| Управление | Файл в `.claude/skills/` | `/agents` и `.claude/agents/` |
+
+Двете се комбинират: субагент, който зарежда скил, е много честа схема.
+
+<CardGroup cols={2}>
+  <Card title="Команди" href="/spravochnik/komandi" icon="terminal">
+    `/agents`, `/hooks` и останалите вградени команди.
+  </Card>
+  <Card title="Съвети" href="/raboten-proces/saveti" icon="lightbulb">
+    Кога да делегираш на субагент.
+  </Card>
+</CardGroup>

@@ -1,0 +1,8 @@
+# esbuild (Astro/Vite dependency) needs its postinstall to fetch the native binary.
+# `allowBuilds` is pnpm 11+; `onlyBuiltDependencies` is the pnpm 10 spelling, kept
+# so the install also works on whatever pnpm version the CI/host picks.
+allowBuilds:
+  esbuild: true
+
+onlyBuiltDependencies:
+  - esbuild

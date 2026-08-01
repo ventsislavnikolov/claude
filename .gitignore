@@ -1,0 +1,22 @@
+node_modules/
+.blume/
+.blume-verify/
+dist/
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# env
+.env
+.env.*
+!.env.example
+
+# editors / OS
+.DS_Store
+.idea/
+.vscode/
+
+# vercel
+.vercel
