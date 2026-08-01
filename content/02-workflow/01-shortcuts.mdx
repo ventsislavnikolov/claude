@@ -1,0 +1,96 @@
+---
+title: Keyboard shortcuts and tricks
+description: The keys and prefixes in Claude Code — permission modes, interrupting, rewinding, shell commands, and mentioning files.
+sidebar:
+  label: Shortcuts and tricks
+  icon: keyboard
+---
+
+Slash commands are typed; these things are pressed. They're the difference between "working with
+Claude Code" and "working with Claude Code fast".
+
+## Keyboard shortcuts
+
+| Shortcut | What it does |
+| --- | --- |
+| `Shift+Tab` | Switches the **permission mode** — cycling through the permission modes. The main way into plan mode. |
+| `Esc` | Interrupts Claude mid-task. Stops the current action without losing the session. |
+| `Esc` `Esc` | Press twice: rewind the conversation to edit an earlier message and take a different direction. |
+| `Ctrl+O` | Expands truncated output — shows the full detail of the tools that ran. |
+| `Ctrl+R` | Searches the history of your previous prompts. |
+| `Ctrl+C` | Cancels the current input. Twice — exits Claude Code. |
+| `Ctrl+D` | Exits the session. |
+| `↑` / `↓` | Steps through previous prompts. |
+
+### Permission modes
+
+`Shift+Tab` cycles through the permission modes. These are their real names — the same ones you see
+in `settings.json`:
+
+| Mode | Behavior |
+| --- | --- |
+| `default` | Asks for permission before every action that changes something. |
+| `acceptEdits` | Accepts file edits automatically, but still asks about everything else. |
+| `plan` | **Plan mode** — Claude only reads and thinks, changing nothing. You get a plan first. |
+| `bypassPermissions` | Asks for nothing. Be careful where you use it. |
+
+:::warning[Plan mode is the most underrated mode]
+For any change that will touch more than two or three files, start in plan mode. You read the plan,
+correct it in one message, and only then let it run. It saves far more time than it costs.
+:::
+
+### The double Esc
+
+The most useful trick people don't know about. When Claude heads in the wrong direction, press `Esc`
+twice, go back to the message that set the wrong course, rephrase it, and continue from there.
+
+The difference from `/clear` is that you don't lose everything before that point — you only cut off
+the wrong branch.
+
+## Prompt prefixes
+
+| Prefix | What it does | Example |
+| --- | --- | --- |
+| `!` | Runs a shell command directly, without going through the model. The output stays in the context. | `!git status` |
+| `#` | Writes a note to memory (`CLAUDE.md`). You're asked which memory file it should go into. | `# always use pnpm, never npm` |
+| `@` | Mentions a file or directory — its contents enter the context. Has autocomplete. | `@src/api/client.ts` |
+| `/` | A slash command. | `/compact` |
+
+<Steps>
+  <Step title="`!` for a quick check">
+    `!git diff --stat` is faster and cheaper than "show me what I changed" — no round trip to the
+    model.
+  </Step>
+  <Step title="`#` for rules you keep repeating">
+    The moment you catch yourself explaining the same thing twice, write it down with `#`. The next
+    session already knows it.
+  </Step>
+  <Step title="`@` instead of a description">
+    `@convex/schema.ts` is more precise than "look at the schema file" and saves a search.
+  </Step>
+</Steps>
+
+## Small things that help
+
+<Accordion>
+  <AccordionItem title="You can type while Claude is working" icon="keyboard">
+    Your message is queued and picked up as soon as the current step finishes. No need to wait.
+  </AccordionItem>
+  <AccordionItem title="Drag and paste images" icon="image">
+    A screenshot of an error or a design can go straight into the prompt — paste on macOS, drag and
+    drop elsewhere.
+  </AccordionItem>
+  <AccordionItem title="Multi-line input" icon="corner-down-left">
+    For a new line without sending, use `Shift+Enter`. If that doesn't work in your terminal,
+    `/terminal-setup` configures it.
+  </AccordionItem>
+</Accordion>
+
+<CardGroup cols={2}>
+  <Card title="Commands" href="/reference/commands" icon="terminal">
+    The full list of slash commands.
+  </Card>
+  <Card title="Tips" href="/workflow/tips" icon="lightbulb">
+    How to arrange them into a workflow.
+  </Card>
+</CardGroup>

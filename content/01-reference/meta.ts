@@ -1,8 +1,8 @@
 import { defineMeta } from "blume";
 
 export default defineMeta({
-  title: "Справочник",
+  title: "Reference",
   icon: "book-open",
   order: 1,
-  pages: ["komandi", "skilove"],
+  pages: ["commands", "skills"],
 });

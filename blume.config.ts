@@ -3,10 +3,18 @@ import { defineConfig } from "blume";
 export default defineConfig({
   title: "Claude Library",
   description:
-    "Личен справочник за работа с Claude Code — команди, скилове, клавишни комбинации и добри практики.",
+    "Personal Claude Code reference — commands, skills, keyboard shortcuts, and best practices.",
 
   content: {
     root: "content",
+  },
+
+  i18n: {
+    defaultLocale: "en",
+    locales: [
+      { code: "en", label: "English" },
+      { code: "bg", label: "Български" },
+    ],
   },
 
   deployment: {

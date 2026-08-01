@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "version": "1.0.0",
-  "description": "Личен справочник за работа с Claude Code.",
+  "description": "Personal Claude Code reference.",
   "scripts": {
     "dev": "blume dev",
     "build": "blume build",

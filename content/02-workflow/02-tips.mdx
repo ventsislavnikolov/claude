@@ -1,0 +1,169 @@
+---
+title: Tips
+description: Best practices for working with Claude Code — CLAUDE.md, focused prompts, plan mode, context management, git worktrees, and subagents.
+sidebar:
+  label: Tips
+  icon: lightbulb
+---
+
+The tools are covered on the other pages. This one is about using them together.
+
+Almost every problem with Claude Code comes down to one of two things: **it lacks context** or **it
+has too much context**. The tips below are ways to hold that balance.
+
+## CLAUDE.md
+
+`CLAUDE.md` is read at the start of every session. It's the place for the things you'd otherwise
+explain every time.
+
+<Steps>
+  <Step title="Generate the first version">
+    `/init` analyzes the codebase and writes a draft. Don't leave it as is — it's a starting point.
+  </Step>
+  <Step title="Clean it up">
+    Remove everything Claude can work out from the code itself. Keep only what isn't obvious.
+  </Step>
+  <Step title="Maintain it with `#`">
+    Every time you repeat an instruction, write it down with the `#` prefix.
+  </Step>
+</Steps>
+
+### What belongs in it
+
+| Belongs | Doesn't belong |
+| --- | --- |
+| Build, test, and lint commands (`pnpm test`, not "run the tests") | A retelling of the folder structure |
+| Conventions that aren't visible in the code | Things the linter already checks |
+| Explicit prohibitions — "never touch `generated/`" | Long documentation — put it in a file and point at it |
+| Project-specific traps | General programming advice |
+
+:::tip[Keep it short]
+`CLAUDE.md` enters the context in every session. A 400-line file costs tokens constantly and starts
+getting lost among everything else. Under a hundred lines is a good target.
+:::
+
+There are three levels, and all three are read:
+
+<FileTree>
+
+- ~/.claude/CLAUDE.md
+- project/
+  - CLAUDE.md
+  - packages/
+    - api/
+      - CLAUDE.md
+
+</FileTree>
+
+## Small, focused prompts
+
+One prompt, one task. If the sentence contains "and then", it's probably two tasks.
+
+<Columns cols={2}>
+  <Column>
+    <Card title="Good" icon="circle-check">
+      "Add validation for the `email` field in `RegisterForm` and cover it with a test."
+    </Card>
+  </Column>
+  <Column>
+    <Card title="Worse" icon="circle-alert">
+      "Fix the registration form, add tests, update the docs, and open a PR."
+    </Card>
+  </Column>
+</Columns>
+
+Big tasks aren't off limits — just give them plan mode or a subagent instead of firing them off
+directly.
+
+## Plan mode for large changes
+
+`Shift+Tab` into **plan mode** before you start anything that will touch more than a few files.
+
+You gain two things: you see the approach before any code is written (fixing a plan is one message,
+fixing code is a new session), and Claude reads the code carefully instead of typing straight away.
+
+:::note
+Plan mode changes nothing — it only reads and proposes. You leave it once you approve the plan.
+:::
+
+## Managing context
+
+<Accordion>
+  <AccordionItem title="/clear between unrelated tasks" icon="eraser">
+    A new task with nothing in common with the last one — `/clear`. Leftovers from the previous work
+    confuse the model. `CLAUDE.md` is loaded again, so you don't lose the conventions.
+  </AccordionItem>
+  <AccordionItem title="/compact when the context is long" icon="fold-vertical">
+    Same work, but the session has grown long — `/compact`. Give it instructions about what to keep:
+    `/compact keep the schema decisions and the list of remaining tasks`.
+  </AccordionItem>
+  <AccordionItem title="Don't wait until the context runs out" icon="gauge">
+    Compacting in the middle of a complex step loses more than doing it earlier, at a natural
+    boundary between tasks.
+  </AccordionItem>
+  <AccordionItem title="@ instead of “find the file”" icon="at-sign">
+    Mentioning a file directly saves a search cycle and puts exactly the right thing in the context.
+  </AccordionItem>
+</Accordion>
+
+## Git worktrees for parallel sessions
+
+Several Claude sessions in the same directory get in each other's way — they edit the same files and
+confuse one another. The answer is **git worktrees**: a separate working directory per branch.
+
+```bash
+git worktree add ../proj-feature-auth -b feature/auth
+git worktree add ../proj-bugfix-123 -b fix/issue-123
+```
+
+You run `claude` in each directory separately. The sessions are fully isolated — only `.git` is
+shared.
+
+When you're done:
+
+```bash
+git worktree remove ../proj-feature-auth
+```
+
+:::warning
+Each worktree is a separate directory — dependencies (`node_modules`) and `.env` files have to be
+installed and copied again.
+:::
+
+## Subagents for large tasks
+
+A subagent works in **its own context** and returns only the result. The intermediate steps — the
+files it read, the failed attempts, the long output — never enter your session.
+
+When it's worth it:
+
+| Situation | Why a subagent |
+| --- | --- |
+| "Find where X happens" in a large repo | The search reads many files; you only want the answer. |
+| Several independent changes at once | They run in parallel instead of one after another. |
+| Research with an unclear outcome | If it finds nothing, you've saved your context from the noise. |
+| Reviewing a large diff | Isolated context, isolated opinion. |
+
+They're managed with `/agents`; the definitions live in `.claude/agents/`.
+
+:::tip
+Give a subagent a clear task **and** a clear response format. It can't see your conversation —
+everything it needs has to be in the prompt.
+:::
+
+## In short
+
+<Columns cols={2}>
+  <Column>
+    <Card title="Before the task" icon="play">
+      `CLAUDE.md` is current, plan mode for the big things, a worktree if you'll run things in
+      parallel.
+    </Card>
+  </Column>
+  <Column>
+    <Card title="During the task" icon="activity">
+      `Esc Esc` when it goes the wrong way, `/compact` when the context is long, a subagent for side
+      quests.
+    </Card>
+  </Column>
+</Columns>

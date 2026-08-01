@@ -1,8 +1,8 @@
 import { defineMeta } from "blume";
 
 export default defineMeta({
-  title: "Работен процес",
+  title: "Workflow",
   icon: "workflow",
   order: 2,
-  pages: ["klavishi", "saveti"],
+  pages: ["shortcuts", "tips"],
 });

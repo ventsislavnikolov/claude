@@ -1,67 +1,92 @@
 # Claude Library
 
-Личен справочник (cheat-sheet библиотека) за работа с **Claude Code** — slash команди, скилове,
-клавишни комбинации и добри практики. Съдържанието е на български, командите и техническите
-термини остават на английски.
+A personal cheat-sheet library for **Claude Code** — slash commands, skills, keyboard shortcuts, and
+best practices. English is the default language; the Bulgarian translation is served under `/bg`.
 
-Сайтът е направен с [Blume](https://useblume.dev) — markdown-first docs генератор върху Astro.
+The site is built with [Blume](https://useblume.dev) — a markdown-first docs generator on top of
+Astro.
 
-## Изисквания
+## Requirements
 
-Node.js 22.12 или по-нов и `pnpm`.
+Node.js 22.12 or newer and `pnpm`.
 
-## Стартиране
+## Running
 
 ```bash
 pnpm install
-pnpm dev          # dev сървър с hot reload на http://localhost:4321
+pnpm dev          # dev server with hot reload on http://localhost:4321
 ```
 
-## Билд
+## Build
 
 ```bash
-pnpm build        # статичен HTML в dist/
-pnpm preview      # преглед на последния билд
-pnpm validate     # проверка за счупени вътрешни връзки
+pnpm build        # static HTML in dist/
+pnpm preview      # preview the last build
+pnpm validate     # check for broken internal links
 ```
 
-Еквивалентните команди без npm scripts са `pnpm exec blume dev`, `pnpm exec blume build` и
+The equivalents without npm scripts are `pnpm exec blume dev`, `pnpm exec blume build`, and
 `pnpm exec blume validate`.
 
-## Структура
+## Structure
 
 ```
-content/                     # Markdown/MDX съдържанието — това е сайтът
-  index.mdx                  # Начало
-  01-spravochnik/            # Справочник (meta.ts задава заглавието в менюто)
-    01-komandi.mdx           # Slash команди
-    02-skilove.mdx           # Skills
-  02-raboten-proces/         # Работен процес
-    01-klavishi.mdx          # Клавишни комбинации и трикове
-    02-saveti.mdx            # Добри практики
-blume.config.ts              # име, описание, тема, търсене
-vercel.json                  # статичен deploy към Vercel
+content/                     # the Markdown/MDX content — this is the site
+  index.mdx                  # Home (English, default locale)
+  01-reference/              # Reference (meta.ts sets the sidebar title)
+    01-commands.mdx          # Slash commands
+    02-skills.mdx            # Skills
+  02-workflow/               # Workflow
+    01-shortcuts.mdx         # Keyboard shortcuts and tricks
+    02-tips.mdx              # Best practices
+  bg/                        # Bulgarian locale, mirroring the tree above
+    index.mdx
+    01-reference/
+    02-workflow/
+blume.config.ts              # title, description, i18n locales, theme, search
+vercel.json                  # static deploy to Vercel
 ```
 
-Навигацията се извежда автоматично от файловата структура. Числовите префикси задават реда и не
-влизат в URL-а; заглавията на групите в менюто се задават в `meta.ts` на съответната папка.
+Navigation is derived from the file structure. Numeric prefixes set the order and don't appear in
+URLs; sidebar group titles come from each folder's `meta.ts`.
 
-## Добавяне на нова страница
+## Languages
 
-Създай `.mdx` файл в подходящата папка с frontmatter:
+`blume.config.ts` declares the locales:
+
+```ts
+i18n: {
+  defaultLocale: "en",
+  locales: [
+    { code: "en", label: "English" },
+    { code: "bg", label: "Български" },
+  ],
+}
+```
+
+English lives at the content root and is served unprefixed (`/`, `/reference/commands`). Bulgarian
+lives in `content/bg/`, mirrors the same file names, and is served under `/bg/…`. A language
+switcher appears in the header automatically, and untranslated pages fall back to English.
+
+## Adding a page
+
+Create an `.mdx` file in the right folder with frontmatter:
 
 ```mdx
 ---
-title: Заглавие на страницата
-description: Кратко описание за SEO и търсачката.
+title: Page title
+description: A short description for SEO and search.
 sidebar:
   icon: book
 ---
 ```
 
-`pnpm build` пада с грешка при невалиден frontmatter, така че печатните грешки се хващат веднага.
+Add the same file name under `content/bg/` for the Bulgarian version, and list the slug in the
+folder's `meta.ts` in both locales.
+
+`pnpm build` fails on invalid frontmatter, so typos surface immediately.
 
 ## Deploy
 
-Vercel чете `vercel.json`: `pnpm install` за инсталация, `pnpm exec blume build` за билд, `dist`
-като изход.
+Vercel reads `vercel.json`: `pnpm install` to install, `pnpm exec blume build` to build, `dist` as
+the output.

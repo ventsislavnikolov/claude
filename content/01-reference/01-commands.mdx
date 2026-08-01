@@ -1,0 +1,99 @@
+---
+title: Commands
+description: Every slash command in Claude Code — what it does, when to reach for it, and an example.
+sidebar:
+  label: Commands
+  icon: terminal
+---
+
+Slash commands are typed straight into the Claude Code prompt — start with `/` and the list filters
+as you type. They aren't sent to the model as ordinary text; the CLI itself runs them.
+
+:::note
+If you forget one, `/help` prints the full list, including the commands added by your plugins and
+skills.
+:::
+
+## The ones you'll use most
+
+<Columns cols={3}>
+  <Column>
+    <Card title="/init" icon="file-plus">
+      Creates a `CLAUDE.md` for the project.
+    </Card>
+  </Column>
+  <Column>
+    <Card title="/clear" icon="eraser">
+      Resets the context between tasks.
+    </Card>
+  </Column>
+  <Column>
+    <Card title="/compact" icon="fold-vertical">
+      Collapses a long session into a summary.
+    </Card>
+  </Column>
+</Columns>
+
+## Context and session
+
+| Command | What it does | Example |
+| --- | --- | --- |
+| `/init` | Analyzes the codebase and generates a `CLAUDE.md` describing the project, its build/test commands, and its conventions. Run it once, then maintain it by hand. | `/init` |
+| `/clear` | Wipes the conversation history and starts fresh. The fastest way to get quality back when Claude is buried under stale context. | `/clear` |
+| `/compact` | Summarizes the conversation into a short recap and frees up context while keeping the thread. Also takes instructions about what to preserve. | `/compact keep the API decisions` |
+| `/resume` | Opens a list of previous sessions and continues the one you pick — with all of its context. | `/resume` |
+| `/memory` | Opens the memory files (project- and user-level `CLAUDE.md`) for editing in your editor. | `/memory` |
+
+:::tip[When to `/clear`, when to `/compact`]
+`/clear` — when the next task has nothing to do with the last one. `/compact` — when you're
+continuing the same work but the context has grown heavy.
+:::
+
+## Settings and model
+
+| Command | What it does | Example |
+| --- | --- | --- |
+| `/config` | Opens Claude Code's settings — theme, notifications, editor behavior, and more. | `/config` |
+| `/model` | Shows or switches the model for the session. With no argument it opens a picker. | `/model opus` |
+| `/status` | Prints diagnostics: account, active model, version, working directory, connected services. | `/status` |
+| `/cost` | Shows the tokens used and the cost of the current session. | `/cost` |
+| `/login` | Sign in or switch Anthropic accounts. | `/login` |
+| `/help` | Lists every available command with a one-line description. | `/help` |
+
+## Extensions and permissions
+
+| Command | What it does | Example |
+| --- | --- | --- |
+| `/agents` | Manages subagents — creating, editing, and reviewing the definitions in `.claude/agents/`. | `/agents` |
+| `/hooks` | Configures hooks — commands that run automatically before or after certain events. | `/hooks` |
+| `/mcp` | Manages MCP servers: connection status, available tools, OAuth authentication. | `/mcp` |
+| `/permissions` | Review and edit the permission rules — what's allowed, what asks, and what's denied. | `/permissions` |
+| `/review` | Reviews a pull request and leaves comments on the code. | `/review 271` |
+
+## Habits worth forming
+
+<Accordion>
+  <AccordionItem title="Run /init right after cloning a new project" icon="file-plus">
+    `CLAUDE.md` is the first thing Claude reads. Five minutes up front saves the same explanations
+    in every session that follows.
+  </AccordionItem>
+  <AccordionItem title="/compact with instructions beats /compact without" icon="fold-vertical">
+    Tell it what to keep and the summary stays useful. Otherwise you risk losing exactly the detail
+    you'll need ten minutes later.
+  </AccordionItem>
+  <AccordionItem title="/cost before a long session" icon="wallet">
+    A quick sense of how expensive your way of working is — especially if you spin up a lot of
+    subagents.
+  </AccordionItem>
+</Accordion>
+
+## Next step
+
+<CardGroup cols={2}>
+  <Card title="Skills" href="/reference/skills" icon="sparkles">
+    How to add your own commands through skills.
+  </Card>
+  <Card title="Keyboard shortcuts" href="/workflow/shortcuts" icon="keyboard">
+    The tricks that aren't slash commands.
+  </Card>
+</CardGroup>

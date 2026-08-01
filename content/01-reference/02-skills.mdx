@@ -1,0 +1,152 @@
+---
+title: Skills
+description: What skills are in Claude Code, how they get invoked, where they live, and how to write a simple SKILL.md.
+sidebar:
+  label: Skills
+  icon: sparkles
+---
+
+A **skill** is a package of instructions that teaches Claude how to handle one kind of task — your
+deploy steps, a code review checklist, the conventions of a particular module. Instead of explaining
+the same thing every time, you write it down once as a skill.
+
+The key part is that skills load **on demand**. Only a short description sits in the context; the
+full instructions come in when the task calls for them. That's why you can keep many skills around
+without weighing the session down.
+
+## How they're invoked
+
+<Columns cols={2}>
+  <Column>
+    <Card title="Manually" icon="mouse-pointer-click">
+      You type `/skill-name` in the prompt — just like any other slash command.
+    </Card>
+  </Column>
+  <Column>
+    <Card title="Automatically" icon="wand-sparkles">
+      Claude recognizes from the `description` that the skill fits the task and loads it itself.
+    </Card>
+  </Column>
+</Columns>
+
+That makes `description` the most important field: it's the only thing Claude sees before deciding
+whether to open the skill.
+
+```text
+/create-commit
+/deploy-staging
+```
+
+Skills that come from a plugin are invoked with a prefix — the plugin name, a colon, the skill name:
+
+```text
+/mattpocock-skills:tdd
+```
+
+## Where they live
+
+| Location | Scope | When to use it |
+| --- | --- | --- |
+| `.claude/skills/<name>/SKILL.md` | This project only | Conventions, commands, and processes specific to the repo. Committed with the code. |
+| `~/.claude/skills/<name>/SKILL.md` | All your projects | Personal habits and workflows you carry everywhere. |
+| Plugins | Depends on the install | Ready-made sets of skills, installed in one go. |
+| Marketplace | Depends on the install | Public collections — add a marketplace, then install a plugin from it. |
+
+<FileTree>
+
+- .claude/
+  - skills/
+    - deploy-staging/
+      - SKILL.md
+    - review-checklist/
+      - SKILL.md
+      - references/
+        - checklist.md
+      - scripts/
+        - lint.sh
+- CLAUDE.md
+
+</FileTree>
+
+:::note
+The layout is always `<skill-name>/SKILL.md` — the folder provides the name, the file is always
+called `SKILL.md`.
+:::
+
+## A simple SKILL.md
+
+The minimal skill is YAML frontmatter with `name` and `description`, followed by Markdown
+instructions:
+
+````markdown SKILL.md
+---
+name: deploy-staging
+description: Deploys the current branch to staging. Use when the user asks to deploy, ship, or push to staging.
+---
+
+# Deploy to staging
+
+## Before deploying
+
+1. Check that the tests pass: `pnpm test`
+2. Check that there are no uncommitted changes: `git status`
+
+## Deploy
+
+```bash
+pnpm build
+pnpm exec vercel deploy --prebuilt
+```
+
+## After deploying
+
+Check the health endpoint and report the deployment URL.
+````
+
+### What makes a description good
+
+<Accordion>
+  <AccordionItem title="It says WHAT it does and WHEN to use it" icon="target">
+    Both, together. "Deploys to staging" on its own isn't enough — add "Use when the user asks to
+    deploy or ship".
+  </AccordionItem>
+  <AccordionItem title="It contains the words you'll actually type" icon="type">
+    If you say "push it to staging", put "staging" and "push" in the description. Matching is
+    semantic, but the concrete words help.
+  </AccordionItem>
+  <AccordionItem title="It's short" icon="scissors">
+    One or two sentences. The description sits in the context permanently — a long one costs tokens
+    in every session.
+  </AccordionItem>
+</Accordion>
+
+## Supporting files
+
+A skill isn't only one file. Next to `SKILL.md` you can put:
+
+- **`references/`** — long reference material Claude reads only when it needs it.
+- **`scripts/`** — ready-made scripts the skill calls instead of rewriting them each time.
+- **`assets/`** — templates, configs, patch files.
+
+The idea is to keep `SKILL.md` short and have it point at the rest: "for the full list, see
+`references/checklist.md`".
+
+## Skill or subagent?
+
+| | Skill | Subagent |
+| --- | --- | --- |
+| What it is | Instructions for the current session | A separate session with its own context |
+| Context | Enters your context | Has its own, isolated context |
+| When | A procedure Claude should follow | A large task whose intermediate steps you don't want in the main conversation |
+| Managed via | A file in `.claude/skills/` | `/agents` and `.claude/agents/` |
+
+The two combine well: a subagent that loads a skill is a very common setup.
+
+<CardGroup cols={2}>
+  <Card title="Commands" href="/reference/commands" icon="terminal">
+    `/agents`, `/hooks`, and the rest of the built-in commands.
+  </Card>
+  <Card title="Tips" href="/workflow/tips" icon="lightbulb">
+    When to delegate to a subagent.
+  </Card>
+</CardGroup>

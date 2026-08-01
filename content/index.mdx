@@ -1,60 +1,61 @@
 ---
-title: Личен справочник за Claude Code
-description: Команди, скилове, клавишни комбинации и добри практики за Claude Code — събрани на едно място.
+title: Personal Claude Code reference
+description: Commands, skills, keyboard shortcuts, and best practices for Claude Code — collected in one place.
 sidebar:
-  label: Начало
+  label: Home
   icon: house
 ---
 
-Това е моята лична библиотека за **Claude Code** — кратки, практични страници, към които се връщам,
-когато забравя как точно се прави нещо. Няма дълги обяснения: само командата, какво прави и пример.
+This is my personal library for **Claude Code** — short, practical pages I come back to whenever I
+forget how something works. No long explanations: just the command, what it does, and an example.
 
 :::tip
-Използвай търсачката горе, ако знаеш какво търсиш. Всяка страница е самостоятелен cheat-sheet.
+Use the search box above if you already know what you're after. Every page is a standalone
+cheat sheet.
 :::
 
-## Разделите накратко
+## The sections at a glance
 
 <CardGroup cols={2}>
-  <Card title="Команди" href="/spravochnik/komandi" icon="terminal">
-    Всички slash команди — `/init`, `/compact`, `/model`, `/permissions` и останалите.
+  <Card title="Commands" href="/reference/commands" icon="terminal">
+    Every slash command — `/init`, `/compact`, `/model`, `/permissions`, and the rest.
   </Card>
-  <Card title="Скилове" href="/spravochnik/skilove" icon="sparkles">
-    Какво са skills, къде живеят и как се пише собствен `SKILL.md`.
+  <Card title="Skills" href="/reference/skills" icon="sparkles">
+    What skills are, where they live, and how to write your own `SKILL.md`.
   </Card>
-  <Card title="Клавиши и трикове" href="/raboten-proces/klavishi" icon="keyboard">
-    `Shift+Tab`, двойно `Esc`, префиксите `!`, `#` и `@`.
+  <Card title="Shortcuts and tricks" href="/workflow/shortcuts" icon="keyboard">
+    `Shift+Tab`, double `Esc`, and the `!`, `#`, and `@` prefixes.
   </Card>
-  <Card title="Съвети" href="/raboten-proces/saveti" icon="lightbulb">
-    `CLAUDE.md`, plan mode, worktrees, субагенти — как да работиш ефективно.
+  <Card title="Tips" href="/workflow/tips" icon="lightbulb">
+    `CLAUDE.md`, plan mode, worktrees, subagents — how to work efficiently.
   </Card>
 </CardGroup>
 
-## Ако имаш само две минути
+## If you only have two minutes
 
-Тези четири неща променят най-много начина, по който работиш с Claude Code:
+These four things change how you work with Claude Code more than anything else:
 
 <Steps>
-  <Step title="Направи CLAUDE.md">
-    Стартирай `/init` в проекта. Файлът се чете при всяка сесия и спестява безкрайни обяснения —
-    подробности в [Съвети](/raboten-proces/saveti).
+  <Step title="Write a CLAUDE.md">
+    Run `/init` in your project. The file is read at the start of every session and saves you
+    endless re-explaining — details in [Tips](/workflow/tips).
   </Step>
-  <Step title="Планирай, преди да пишеш">
-    Натисни `Shift+Tab` до **plan mode** за големи промени. Claude първо предлага план, после пипа
-    кода.
+  <Step title="Plan before you write">
+    Press `Shift+Tab` to reach **plan mode** for larger changes. Claude proposes a plan first, then
+    touches the code.
   </Step>
-  <Step title="Пази контекста чист">
-    `/clear` между несвързани задачи, `/compact` когато сесията стане дълга.
+  <Step title="Keep the context clean">
+    `/clear` between unrelated tasks, `/compact` once a session gets long.
   </Step>
-  <Step title="Делегирай големите задачи">
-    Субагенти (`/agents`) и скилове държат основния контекст малък и фокусиран.
+  <Step title="Delegate the big jobs">
+    Subagents (`/agents`) and skills keep your main context small and focused.
   </Step>
 </Steps>
 
-## Легенда
+## Legend
 
-| Означение | Какво значи |
+| Notation | What it means |
 | --- | --- |
-| `/команда` | Slash команда, която се пише в промпта на Claude Code. |
-| `Shift+Tab` | Клавишна комбинация в терминала. |
-| `path/to/file` | Път до файл или директория в проекта. |
+| `/command` | A slash command you type into the Claude Code prompt. |
+| `Shift+Tab` | A keyboard shortcut in the terminal. |
+| `path/to/file` | A path to a file or directory in your project. |

@@ -2,5 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "pnpm exec blume build",
   "outputDirectory": "dist",
-  "installCommand": "pnpm install"
+  "installCommand": "pnpm install",
+  "redirects": [
+    { "source": "/spravochnik/komandi", "destination": "/bg/reference/commands", "permanent": true },
+    { "source": "/spravochnik/skilove", "destination": "/bg/reference/skills", "permanent": true },
+    { "source": "/raboten-proces/klavishi", "destination": "/bg/workflow/shortcuts", "permanent": true },
+    { "source": "/raboten-proces/saveti", "destination": "/bg/workflow/tips", "permanent": true }
+  ]
 }
