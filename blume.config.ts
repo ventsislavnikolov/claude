@@ -9,6 +9,10 @@ export default defineConfig({
     root: "content",
   },
 
+  deployment: {
+    site: "https://claude-library-sable.vercel.app",
+  },
+
   theme: {
     accent: "purple",
     radius: "md",
