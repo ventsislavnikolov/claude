@@ -60,6 +60,12 @@ continuing the same work but the context has grown heavy.
 | `/cost` | Shows the tokens used and the cost of the current session. | `/cost` |
 | `/login` | Sign in or switch Anthropic accounts. | `/login` |
 | `/help` | Lists every available command with a one-line description. | `/help` |
+| `/checkup` | Audits and tunes your whole setup: removes unused skills/MCPs/plugins to save context, dedups and splits `CLAUDE.md` into nested files + skills, turns off slow hooks, updates Claude Code, and pre-approves frequently denied read-only commands. Confirms every change first. | `/checkup` |
+
+:::note[/checkup needs a recent version]
+Announced by Boris Cherny (August 2026). Not present in older builds — if it's missing, run
+`claude update` first.
+:::
 
 ## Extensions and permissions
 
@@ -70,15 +76,6 @@ continuing the same work but the context has grown heavy.
 | `/mcp` | Manages MCP servers: connection status, available tools, OAuth authentication. | `/mcp` |
 | `/permissions` | Review and edit the permission rules — what's allowed, what asks, and what's denied. | `/permissions` |
 | `/review` | Reviews a pull request and leaves comments on the code. | `/review 271` |
-
-## My custom commands
-
-Personal commands live as Markdown files in `~/.claude/commands/` — the file name becomes the
-command name. These are mine:
-
-| Command | What it does | Status |
-| --- | --- | --- |
-| `/cleanup` | Planned: tidy up the working diff — dead code, stray `console.log`s, unused imports. | Not created yet — will live in `~/.claude/commands/cleanup.md` |
 
 ## Habits worth forming
 
