@@ -4,5 +4,5 @@ export default defineMeta({
   title: "Workflow",
   icon: "workflow",
   order: 2,
-  pages: ["shortcuts", "tips", "dynamic-workflows"],
+  pages: ["shortcuts", "tips", "dynamic-workflows", "agent-teams"],
 });
