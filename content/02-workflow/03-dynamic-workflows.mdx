@@ -1,0 +1,257 @@
+---
+title: Dynamic workflows
+description: Orchestrating many subagents from a script Claude writes — the ultracode keyword, /workflows, saving runs as commands, limits, resume, and cost.
+sidebar:
+  label: Dynamic workflows
+  icon: git-branch
+---
+
+A **dynamic workflow** is a JavaScript script that orchestrates [subagents](/workflow/tips) at scale.
+You describe the task, Claude writes the script, and a runtime executes it in the background while
+your session stays responsive.
+
+The point isn't just "more agents". It's that the plan moves into code: the loop, the branching, and
+the intermediate results live in script variables instead of in a context window. Claude's context
+only holds the final answer.
+
+:::note
+Requires Claude Code **v2.1.154+** and a paid plan (also available on the API, Bedrock, Google Cloud
+Agent Platform, and Microsoft Foundry). On Pro, switch it on from the **Dynamic workflows** row in
+`/config`.
+:::
+
+## When it's worth it
+
+Subagents, skills, agent teams, and workflows can all run a multi-step task. The difference is **who
+holds the plan**:
+
+| | Subagents | Skills | Agent teams | Workflows |
+| --- | --- | --- | --- | --- |
+| What it is | A worker Claude spawns | Instructions Claude follows | A lead supervising peer sessions | A script the runtime executes |
+| Who decides what's next | Claude, turn by turn | Claude, following the prompt | The lead agent, turn by turn | The script |
+| Where intermediate results live | Claude's context | Claude's context | A shared task list | Script variables |
+| What's repeatable | The worker definition | The instructions | The team definition | The orchestration itself |
+| Scale | A few tasks per turn | Same as subagents | A handful of long-running peers | Dozens to hundreds per run |
+| Interruption | Restarts the turn | Restarts the turn | Teammates keep running | Resumable in the same session |
+
+Reach for a workflow when the task is bigger than one conversation can coordinate, or when the same
+step has to run across many items: a codebase-wide bug sweep, a 500-file migration, a research
+question whose sources need cross-checking, a hard plan worth drafting from several angles first.
+
+:::tip[The quality argument]
+Because the orchestration is code, it can encode a repeatable quality pattern — independent agents
+adversarially reviewing each other's findings before anything is reported, or several drafts of a
+plan weighed against each other. That's a more trustworthy result than a single pass.
+:::
+
+## Starting one
+
+<Columns cols={2}>
+  <Column>
+    <Card title="Per prompt" icon="wand-sparkles">
+      Put `ultracode` in the prompt, or just ask in your own words — "use a workflow" counts as the
+      same opt-in.
+    </Card>
+  </Column>
+  <Column>
+    <Card title="For the whole session" icon="gauge">
+      `/effort ultracode` — `xhigh` reasoning plus automatic orchestration. Claude then plans a
+      workflow for every substantive task.
+    </Card>
+  </Column>
+</Columns>
+
+```text
+ultracode: audit every API endpoint under src/routes/ for missing auth checks
+```
+
+Claude Code highlights the keyword in your input and writes a script instead of working turn by
+turn. The keyword only changes **how** the work is structured — the run stays inside the session's
+permission mode and sandboxing.
+
+<Accordion>
+  <AccordionItem title="Dismissing the keyword" icon="x">
+    `Option+W` (macOS) or `Alt+W` (Windows/Linux) drops the highlight for this prompt; backspace
+    right after the highlighted word works too. Turn it off for good with **Ultracode keyword
+    trigger** in `/config`.
+  </AccordionItem>
+  <AccordionItem title="Where the keyword does nothing" icon="shield">
+    It's an opt-in only in a prompt **you** type. It's ignored in `-p` prompts, SDK prompts not
+    stamped as human input, scheduled tasks, and webhook or PR-comment payloads relayed into the
+    conversation.
+  </AccordionItem>
+  <AccordionItem title="Session-wide ultracode costs more" icon="coins">
+    One request can become several workflows in a row — understand, change, verify. It applies to
+    every task in the session and resets when you start a new one; `/effort high` puts you back.
+    Requires v2.1.203+.
+  </AccordionItem>
+</Accordion>
+
+### The bundled one
+
+`/deep-research <question>` ships with Claude Code and is the fastest way to see a workflow run. It
+fans out web searches across several angles, cross-checks the sources it finds, votes on each claim,
+and returns a cited report with the claims that didn't survive filtered out. It needs the `WebSearch`
+tool available, and it only runs when you invoke it.
+
+### Approval
+
+The per-run prompt lists the planned phases with **Yes, run it**, **Yes, and don't ask again for
+this workflow in this project**, **View raw script** (`Ctrl+G` opens it in your editor), and **No**.
+`Tab` lets you adjust the prompt before the run starts.
+
+| Permission mode | When you're prompted |
+| --- | --- |
+| `default`, `acceptEdits` | Every run, unless you chose "don't ask again" for that workflow here |
+| Auto | First launch only; skipped entirely when ultracode is on |
+| `bypassPermissions`, `claude -p`, Agent SDK | Never — the run starts immediately |
+
+:::warning
+Your permission mode governs only the launch prompt. The subagents a workflow spawns **always** run
+in `acceptEdits` and inherit your tool allowlist — file edits are auto-approved. Shell commands, web
+fetches, and MCP tools outside the allowlist can still interrupt a long run, so allowlist what the
+agents will need before you start.
+:::
+
+## What the script looks like
+
+Plain JavaScript with top-level `await`: a `meta` block, then a body that spawns agents.
+
+```javascript
+export const meta = {
+  name: 'audit-routes',
+  description: 'Audit every route handler for missing auth checks',
+}
+
+const found = await agent('List every .ts file under src/routes/.', {
+  schema: { type: 'object', required: ['files'], properties: { files: { type: 'array', items: { type: 'string' } } } },
+})
+
+const audits = await pipeline(found.files, file =>
+  agent(`Audit ${file} for missing authentication checks.`, { label: file }),
+)
+
+return audits.filter(Boolean)
+```
+
+| Primitive | What it does |
+| --- | --- |
+| `agent(prompt, options)` | Spawns one subagent. `schema` constrains its result to JSON; `label` names it in the progress view. |
+| `pipeline(items, fn)` | Runs one agent per item in a list. |
+| `args` | A global holding the input passed at invocation — structured data, not a string. `undefined` when nothing was passed. |
+
+:::note
+You don't write these scripts yourself; Claude does. The full option set lives in the **Workflow tool**
+entry of the Agent SDK reference — to change a saved script, the easy path is asking Claude to walk
+you through the edit.
+:::
+
+## Watching and managing a run
+
+`/workflows` lists running and finished workflows; select one and press Enter for its progress view,
+which shows each phase with agent counts, token totals, and elapsed time. A one-line summary also
+appears in the task panel below the input box (`↓` to focus, Enter to expand).
+
+| Key | Action |
+| --- | --- |
+| `↑` / `↓` | Select a phase or agent |
+| `Enter` / `→` | Drill in — a phase, then an agent's prompt, recent tool calls, and result |
+| `Esc` / `←` | Back out one level |
+| `j` / `k` | Scroll inside a long agent detail |
+| `f` | Filter the phase's agents by status; press again to cycle |
+| `p` | Pause or resume the run |
+| `x` | Stop the selected agent — or the whole workflow when focus is on the run |
+| `r` | Restart the selected running agent |
+| `s` | Save the run's script as a command |
+
+### Saving a run as a command
+
+Press `s` in `/workflows`, then `Tab` to pick where it lands:
+
+<FileTree>
+
+- .claude/
+  - workflows/
+    - review-branch.js
+- ~/.claude/
+  - workflows/
+    - triage-issues.js
+
+</FileTree>
+
+Project scripts are shared with everyone who clones the repo; the home directory ones follow you
+across projects and are yours alone. Either way the workflow becomes `/<name>` in future sessions and
+shows up in `/` autocomplete. If both locations define the same name, the project one wins. Workflows
+shipped in a plugin live in a `workflows/` directory at the plugin root and run namespaced —
+`/acme-tools:release-audit`.
+
+Saved workflows take input through `args`:
+
+```text
+Run /triage-issues on issues 1024, 1025, and 1030
+```
+
+### Resuming
+
+A stopped run can be resumed with `p` from `/workflows`, within the same session — exiting Claude
+Code loses it. Two rules decide what's kept:
+
+<Accordion>
+  <AccordionItem title="Unfinished agents aren't cached" icon="circle-slash">
+    An agent still running when you stopped starts over on resume.
+  </AccordionItem>
+  <AccordionItem title="Replay follows start order" icon="list-ordered">
+    Cached results stop at the first agent that didn't finish; **everything started after it reruns,
+    even if it completed**. Stop while B of A–B–C–D is going and C and D both run again.
+  </AccordionItem>
+</Accordion>
+
+That's why a fan-out of many small agents preserves far more progress than one long-running agent.
+
+## Limits and cost
+
+| Constraint | Why |
+| --- | --- |
+| No mid-run user input | Only permission prompts pause a run. For sign-off between stages, run each stage as its own workflow. |
+| No filesystem or shell access from the script | Agents read, write, and run commands; the script only coordinates them. |
+| Up to 16 concurrent agents | Fewer on machines with limited CPU cores. |
+| 1,000 agents per run | Prevents runaway loops. |
+
+A run can burn meaningfully more tokens than doing the same task in conversation, and it counts
+against your plan's limits like any other session. Claude Code flags a run scheduling more than 25
+agents or projected past 1.5M tokens with a `Large workflow` warning in the task panel — advisory
+only, and hidden when ultracode is on.
+
+### Size guideline
+
+Advice to Claude about how many agents to aim for, not a cap. Set it with `/config` (**Dynamic
+workflow size**), `/config workflowSizeGuideline=small`, or the `workflowSizeGuideline` settings key.
+
+| Value | Agents Claude aims for |
+| --- | --- |
+| `unrestricted` | No guideline — sized to the task |
+| `small` | Fewer than 5 |
+| `medium` | Fewer than 15 — the default |
+| `large` | Fewer than 50 |
+
+:::tip[Sizing a big job]
+Run it on a small slice first — one directory instead of the repo, a narrow question instead of a
+broad one. `/workflows` shows per-agent token usage as it goes, and you can stop there. Also check
+`/model`: every agent uses the session's model unless the script routes a stage elsewhere.
+:::
+
+### Turning it off
+
+Toggle **Dynamic workflows** off in `/config`, set `"disableWorkflows": true` in
+`~/.claude/settings.json` (or in managed settings for a whole org), or set
+`CLAUDE_CODE_DISABLE_WORKFLOWS=1`. The bundled commands disappear, `ultracode` stops triggering runs,
+and it leaves the `/effort` menu.
+
+<CardGroup cols={2}>
+  <Card title="Tips" href="/workflow/tips" icon="lightbulb">
+    Context management and when a plain subagent is enough.
+  </Card>
+  <Card title="Commands" href="/reference/commands" icon="terminal">
+    `/config`, `/effort`, `/agents` and the rest of the slash commands.
+  </Card>
+</CardGroup>

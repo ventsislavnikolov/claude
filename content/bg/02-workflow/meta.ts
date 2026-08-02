@@ -4,5 +4,5 @@ export default defineMeta({
   title: "Работен процес",
   icon: "workflow",
   order: 2,
-  pages: ["shortcuts", "tips"],
+  pages: ["shortcuts", "tips", "dynamic-workflows"],
 });
