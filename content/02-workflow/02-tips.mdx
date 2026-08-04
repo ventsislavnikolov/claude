@@ -106,6 +106,27 @@ Plan mode changes nothing — it only reads and proposes. You leave it once you 
   </AccordionItem>
 </Accordion>
 
+## Cache the docs you keep re-reading
+
+When you know you'll consult the same documentation again and again — a feature you're adopting, a
+big MCP server's API, a library you're learning — have Claude read it once and write the summary
+into the repo:
+
+```text
+Read https://code.claude.com/docs/en/agent-teams and write a reference guide
+for it in docs/agent-teams.md. It'll be used to answer questions about this
+feature later, so keep the configuration details and the examples.
+```
+
+Every later question then reads a local file instead of fetching the page again — faster, cheaper,
+and it survives `/clear`. Point `CLAUDE.md` at the folder ("reference docs live in `docs/`") so
+Claude knows to look there before reaching for the network.
+
+:::note
+It's a cache, so it goes stale. Put the date and the source URL at the top of the file, and
+regenerate it when the upstream docs move.
+:::
+
 ## Git worktrees for parallel sessions
 
 Several Claude sessions in the same directory get in each other's way — they edit the same files and

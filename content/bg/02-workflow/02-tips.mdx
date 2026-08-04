@@ -105,6 +105,27 @@ Plan mode не пипа нищо — само чете и предлага. Из
   </AccordionItem>
 </Accordion>
 
+## Кеширай документацията, която четеш пак и пак
+
+Когато знаеш, че ще се връщаш към една и съща документация — feature, който въвеждаш, API на голям
+MCP сървър, библиотека, която учиш — накарай Claude да я прочете веднъж и да запише резюмето в
+проекта:
+
+```text
+Read https://code.claude.com/docs/en/agent-teams and write a reference guide
+for it in docs/agent-teams.md. It'll be used to answer questions about this
+feature later, so keep the configuration details and the examples.
+```
+
+Всеки следващ въпрос след това чете локален файл, вместо пак да тегли страницата — по-бързо,
+по-евтино и оцелява след `/clear`. Насочи `CLAUDE.md` към папката („reference docs live in `docs/`“),
+за да знае Claude да гледа там, преди да посегне към мрежата.
+
+:::note
+Това е кеш, значи остарява. Сложи датата и адреса на източника най-отгоре във файла и го пусни
+наново, когато документацията се промени.
+:::
+
 ## Git worktrees за паралелни сесии
 
 Няколко Claude сесии в една и съща директория си пречат — редактират едни и същи файлове и се
