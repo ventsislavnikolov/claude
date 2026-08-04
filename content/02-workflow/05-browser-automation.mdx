@@ -1,0 +1,173 @@
+---
+title: Browser automation
+description: Driving a real browser from Claude Code with Playwright — why a CLI beats an MCP server on tokens, the self-QA loop, headed vs headless, logged-in sessions, and turning a working script into a skill.
+sidebar:
+  label: Browser automation
+  icon: globe
+---
+
+Give Claude Code control of a browser and the set of things it can do stops being "edit files" and
+starts being "anything a person could do in a tab" — click through your own app looking for bugs,
+pull data off a site with no API, download a report, fill in a form.
+
+The mechanic underneath is simple: Claude **writes a script**, runs it with Bash, reads what comes
+back, and edits the script. The browser is just the thing the script drives.
+
+## Why a CLI instead of an MCP server
+
+Both work. The difference is what they cost you before you've done anything.
+
+An MCP server puts **every tool definition in the context at session start** — name, description, and
+full parameter schema, whether or not you use it. A browser MCP has a lot of tools, and it adds up:
+run `/context` with the Chrome DevTools MCP connected and you'll see individual tools costing 117 to
+313 tokens each, all of it resident for the whole session.
+
+A CLI costs nothing until it's called. Claude already has Bash, so `node script.js` needs no schema
+in the context at all. You pay tokens for the output you actually get back.
+
+| | Browser MCP | Playwright via CLI/scripts |
+| --- | --- | --- |
+| Context cost at startup | Every tool's schema, always resident | Nothing |
+| How Claude calls it | A dedicated tool per action | Bash, running a script it wrote |
+| What you get back | Structured tool results | Whatever the script prints, plus screenshots |
+| Reusable artifact | None — the actions live in the transcript | The script itself, which you keep and improve |
+
+:::note
+The MCP route is still the better fit when you want Claude poking at a page **interactively** —
+one-off exploration where you don't want a script at all. The CLI route wins when the same
+automation will run more than once.
+:::
+
+## Setting it up
+
+Don't install it by hand — describe the goal in plan mode and let Claude work out the steps:
+
+```text
+I want to use Playwright to do browser automation — testing web apps, taking
+screenshots of things, that kind of thing. Figure out how to install it here,
+build me a plan, and let's do it.
+```
+
+You'll get a plan that initializes the project, installs Playwright and its browsers, writes a small
+demo script, and runs it end to end to prove the install works. Approve it, then `/init` so the
+project has a `CLAUDE.md` describing what's now available.
+
+:::tip
+The same prompt with *"research the different tools and the pros and cons and help me figure out what
+I should do"* in front of it is worth running first if you haven't picked a tool yet.
+:::
+
+## The self-QA loop
+
+The strongest use isn't scraping — it's letting Claude test the thing it just built.
+
+<Steps>
+  <Step title="Build">
+    Have Claude build the feature as normal.
+  </Step>
+  <Step title="Ask it to test its own work">
+    In plan mode: spin up a server, drive the app with the browser, fill in the fields, click
+    through, and note anything broken.
+  </Step>
+  <Step title="It writes a test script">
+    One script per bot — `qa-test.js` and so on. This is the artifact you keep.
+  </Step>
+  <Step title="It screenshots as it goes">
+    Each step gets captured into a `screenshots/` folder.
+  </Step>
+  <Step title="It reads the screenshots back">
+    This is the part that makes the loop work. Claude opens the images it just took and diagnoses
+    from them — "the review page never loaded", "the edit button was intercepted by a stale page
+    overlay".
+  </Step>
+  <Step title="It fixes and re-runs">
+    Then it runs the script again to confirm, without being asked.
+  </Step>
+</Steps>
+
+```text
+Spin up a server so you can actually run this. Then use the browser to test it —
+fill in the fields, click through, and if there are any bugs or anything wrong
+with the functionality, make note of it so you can fix the site itself. Do this
+in a headed browser so I can watch what's going on.
+```
+
+Because it's a script, you can point several of them at the same app in parallel — one testing
+validation, one testing navigation, one testing the mobile layout — and leave them running and
+fixing.
+
+### Headed or headless
+
+| Mode | When |
+| --- | --- |
+| Headed — the browser window is visible | While you're developing the script. You see where it gets stuck, and you can stop it early |
+| Headless — nothing appears on screen | Once the script works, and for anything scheduled or running in the background |
+
+Ask for headed explicitly; put the preference in `CLAUDE.md` if you always want it.
+
+## Sites you're logged into
+
+Yes, this works, and Claude will propose the options if you ask it in plan mode:
+
+| Approach | How it works |
+| --- | --- |
+| **Persistent browser profile** *(usually the best)* | The script launches Chromium against a user-data directory that keeps cookies. You log in by hand on the first run; every run after that starts already signed in |
+| **Manual login + handoff** | The script opens a headed browser, you log in, you tell it you're done, and it takes over from there |
+| **Connect to a running browser** | Attach to a browser you already have open |
+
+The first run opens the site, you sign in, and the session is written to the profile directory —
+keep that directory out of git.
+
+:::warning
+Automating a site you're logged into means acting as you, under your account. Check the site's terms
+before pointing this at anything that isn't yours, expect rate limits and anti-bot measures, and keep
+the profile directory — which contains live session cookies — out of version control.
+:::
+
+## Scripts get better each run
+
+A browser script rarely works first time, and that's the normal path rather than a failure:
+
+- Google blocked the automation outright, so the agent switched itself to DuckDuckGo and carried on.
+- A "like" script found the right SVG buttons but clicked them four times, liking and unliking. Two
+  more passes and a hint about what a liked post looks like ("the icon is yellow rather than gray")
+  fixed it.
+
+Each run teaches the script something concrete about the site's DOM. So prompt for persistence —
+*"keep learning, keep updating the script, and don't stop until it's done"* — and when you correct
+it, describe the **visual** cue you'd use yourself. Four or five iterations to a reliable script is
+normal.
+
+## Turning it into a skill
+
+The script is the capability; the [skill](/reference/skills) is the process around it. Once a script
+works, write the loop down:
+
+```markdown
+---
+name: qa-site
+description: Run the browser QA pass against the local app, then fix what it finds.
+---
+
+1. Start the dev server.
+2. Run `node qa-test.js`.
+3. Read the screenshots in `screenshots/qa/`.
+4. Fix the bugs it reports.
+5. Re-run until the pass is clean.
+```
+
+Now the whole thing is one invocation instead of a paragraph of instructions. When the agent later
+works out how to do something the script couldn't — a control it had never handled before — have it
+fold that back into the script and update the skill, so the capability sticks.
+
+Once it's a skill, it can run on a schedule (Claude's desktop app has scheduled tasks) with headless
+browsers, at which point the automation runs without you.
+
+<CardGroup cols={2}>
+  <Card title="Skills" href="/reference/skills" icon="sparkles">
+    Packaging a working script as a repeatable process.
+  </Card>
+  <Card title="Tips" href="/workflow/tips" icon="lightbulb">
+    Plan mode, context management, and keeping `CLAUDE.md` useful.
+  </Card>
+</CardGroup>
