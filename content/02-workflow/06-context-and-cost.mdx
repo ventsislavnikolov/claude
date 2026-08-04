@@ -1,0 +1,197 @@
+---
+title: Context and cost
+description: Why a session gets more expensive and less capable the longer it runs, and the five moves that fix it — /rewind, /clear, /compact, the handoff pattern, and delegating to subagents.
+sidebar:
+  label: Context and cost
+  icon: gauge
+---
+
+Two things happen as a session grows, and they're the same thing seen from two sides: it gets more
+expensive, and it gets worse.
+
+**More expensive**, because every turn re-reads the whole conversation. Your thirtieth message isn't
+priced like your first — it carries all twenty-nine before it. Cost compounds rather than adds, which
+is why a long session can spend most of its tokens re-reading its own history rather than doing
+anything new.
+
+**Worse**, because attention is finite. A model with a full window has to find what matters inside a
+lot of noise, and retrieval gets less reliable as the window fills. The symptoms are recognisable:
+it forgets a decision you made earlier, contradicts itself, edits a file it never read, gets vague.
+
+The practical conclusion is the one people resist: **a big context window is insurance, not a
+target.** Room to work is not a reason to fill it.
+
+## Know your starting cost
+
+A fresh session is never at zero. The system prompt, `CLAUDE.md`, every skill, and every connected
+MCP server's tool definitions are all resident before you type anything.
+
+Run `/context` in a *brand new* session and look at the number. If it's already large, that's a tax
+on every conversation you will ever have in this project, and the fix is upstream — trim `CLAUDE.md`,
+drop MCP servers you don't use, move rarely-needed instructions into files that get loaded on demand.
+
+:::note
+Claude Code has no ignore-file of its own. To keep it out of a directory entirely, use a permission
+deny rule (`/permissions`) rather than looking for a `.claudeignore` — see
+[permission modes](/workflow/shortcuts).
+:::
+
+## The five moves after any reply
+
+Once Claude finishes a turn, you always have five options, and picking deliberately is most of the
+skill:
+
+| Move | When it's right |
+| --- | --- |
+| **Continue** | The thread is healthy and you're still on the same problem. The default, and the one that's overused |
+| **`/rewind`** | Something went wrong and you want it *gone*, not just corrected |
+| **`/clear`** | New task. Nothing before it helps |
+| **`/compact`** | Same task, long history, and you want a summary to carry forward |
+| **Delegate to a subagent** | The next step is bulky but self-contained — reading a lot, searching, verifying |
+
+### Prefer /rewind over "that didn't work, try again"
+
+This is the habit with the best return. When Claude gets something wrong, the natural reply is *"that
+didn't work, try X instead"* — and it usually does work, so the approach feels fine.
+
+But the failed attempt is still there. The broken code, the wrong turn, the dead end: all of it stays
+in the conversation and gets re-read on every subsequent turn, forever, at full price. `/rewind` (or
+`Esc` twice) jumps back to a chosen message and drops everything after it, so the mistake leaves the
+context instead of being buried in it.
+
+The rewind menu also offers **Summarize from here**, which writes a handoff note before dropping the
+tail — a message from the session's future self to its past self saying what was learned.
+
+:::tip
+The counter-argument — "leaving the failure in teaches it not to repeat the mistake" — is real but
+expensive. A line in `CLAUDE.md` or a decision log teaches the same lesson at a fraction of the
+recurring cost.
+:::
+
+### The handoff pattern
+
+`/compact` is fine, but it fires on the model's terms. The alternative gives you control of both the
+timing and the contents:
+
+<Steps>
+  <Step title="Ask for a handoff">
+    *"Give me a full summary of everything we've done, the decisions we locked in, the files that
+    matter, and what we're about to do next."*
+  </Step>
+  <Step title="Copy the output">
+    Including its pointers to plan files, decision logs, and task lists.
+  </Step>
+  <Step title="/clear">
+    A genuinely fresh window.
+  </Step>
+  <Step title="Paste it back">
+    The new session reorients from the summary and keeps going.
+  </Step>
+</Steps>
+
+You get the reset without feeling like you reset. It only works if the durable state lives **on
+disk** — a plan file, a decision log, a task list — rather than in the conversation. Chat history is
+not storage.
+
+This is also worth turning into a [skill](/reference/skills) so it's one command rather than a
+paragraph you retype.
+
+### Compact before the cliff, not at it
+
+Auto-compaction fires when you're nearly out of room — which is precisely when the model is least
+equipped to decide what's worth keeping. Compacting deliberately, well before that point, produces a
+better summary for the same reason packing the night before beats packing five minutes before you
+leave.
+
+`/compact` takes instructions, and it should always get them:
+
+```text
+/compact keep the schema decisions and the list of remaining tasks
+```
+
+You can also move the automatic trigger yourself:
+
+```bash
+claude --autocompact 200000   # or `auto` for the default behaviour
+```
+
+## Side questions: /btw
+
+`/btw` opens a quick side conversation that doesn't enter your main history. Use it for the "wait,
+what does this flag do?" questions that would otherwise wedge an unrelated topic into the middle of
+a working session.
+
+## Feed it the cheapest form of the content
+
+Tokenizers are efficient with plain text and wasteful with layout. A PDF, a `.docx`, or a page of
+HTML carries markup, styling, and structural metadata that the model does not need in order to read
+the words.
+
+Converting to Markdown first is usually a large reduction — enough that it's worth doing routinely
+for anything long. The exception is when the layout *is* the content, or you need OCR or vision; then
+give it the original.
+
+## Session chaining
+
+A big project does not have to be one session. Split it along the natural seams and hand off between
+them:
+
+<Columns cols={3}>
+  <Column>
+    <Card title="Discover" icon="search">
+      Read the codebase and the docs, produce a summary document.
+    </Card>
+  </Column>
+  <Column>
+    <Card title="Plan" icon="map">
+      Read that document, produce a plan.
+    </Card>
+  </Column>
+  <Column>
+    <Card title="Build" icon="hammer">
+      Read the plan, execute it.
+    </Card>
+  </Column>
+</Columns>
+
+Each session starts fresh and carries only the artifact it needs. The alternative — one session that
+does all three — pays to re-read the discovery phase on every turn of the build phase.
+
+## Habits, in order of payoff
+
+<Accordion>
+  <AccordionItem title="Pick a reset number and hold to it" icon="gauge">
+    Decide in advance what fraction of the window you'll work within, and treat crossing it as the
+    signal to hand off. An arbitrary line you actually respect beats a principled one you ignore.
+  </AccordionItem>
+  <AccordionItem title="Start in plan mode" icon="map">
+    Tokens spent getting the plan right are the cheapest tokens in the session. Tokens spent
+    correcting an implementation that misunderstood the goal are the most expensive.
+  </AccordionItem>
+  <AccordionItem title="Delegate bulky reading to a subagent on a cheaper model" icon="users">
+    The subagent absorbs the tokens; your session gets the summary. See
+    [tips](/workflow/tips#subagents-for-large-tasks).
+  </AccordionItem>
+  <AccordionItem title="Keep CLAUDE.md small" icon="file-text">
+    It loads every session, so its size is a recurring charge rather than a one-off.
+  </AccordionItem>
+  <AccordionItem title="When a session feels off, start a new one" icon="rotate-ccw">
+    Not every bad session is a context problem, but starting fresh is cheap and usually faster than
+    arguing your way back to a good state.
+  </AccordionItem>
+</Accordion>
+
+:::warning[On "just be concise"]
+Telling Claude to keep its replies short saves less than people expect. Most output tokens go into
+files, tool calls, and reasoning you never read in the transcript — so brevity in chat trims the
+visible part of a much larger total. Manage the session, not the prose.
+:::
+
+<CardGroup cols={2}>
+  <Card title="Commands" href="/reference/commands" icon="terminal">
+    `/context`, `/rewind`, `/compact`, `/clear` and the rest.
+  </Card>
+  <Card title="Tips" href="/workflow/tips" icon="lightbulb">
+    `CLAUDE.md` discipline, plan mode, and subagents.
+  </Card>
+</CardGroup>

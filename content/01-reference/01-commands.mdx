@@ -42,7 +42,8 @@ skills.
 | `/clear` | Wipes the conversation history and starts fresh. The fastest way to get quality back when Claude is buried under stale context. | `/clear` |
 | `/compact` | Summarizes the conversation into a short recap and frees up context while keeping the thread. Also takes instructions about what to preserve. | `/compact keep the API decisions` |
 | `/context` | Breaks down what is actually occupying the context window — system prompt, `CLAUDE.md`, file contents, each MCP server's tools — as a share of the total. The tool for diagnosing bloat instead of guessing at it. | `/context` |
-| `/rewind` | Rolls the conversation back to an earlier point without starting over. Cheaper than `/clear` when only the last few turns went wrong. | `/rewind` |
+| `/rewind` | Rolls the conversation back to an earlier point without starting over. Cheaper than `/clear` when only the last few turns went wrong. Its menu also offers **Summarize from here**, which writes a handoff note before dropping the tail. | `/rewind` |
+| `/btw` | Asks a quick side question in an overlay, without it entering the conversation history. For the unrelated thing you'd otherwise wedge into the middle of a working session. | `/btw what does --autocompact do?` |
 | `/resume` | Opens a list of previous sessions and continues the one you pick — with all of its context. | `/resume` |
 | `/memory` | Opens the memory files (project- and user-level `CLAUDE.md`) for editing in your editor. | `/memory` |
 | `/cd` | Moves the session to a new working directory — every tool call and relative path resolves from there. Handy for hopping between projects without restarting. | `/cd ../claude-library` |
