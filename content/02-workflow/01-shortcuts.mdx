@@ -39,6 +39,14 @@ For any change that will touch more than two or three files, start in plan mode.
 correct it in one message, and only then let it run. It saves far more time than it costs.
 :::
 
+:::tip[There's a better option than bypassing everything]
+`bypassPermissions` (and `--dangerously-skip-permissions`) is fast because it stops asking. You can
+have that speed without the blast radius: use `/permissions` to explicitly **allow** the commands you
+know are safe and explicitly **deny** the destructive ones. Deny wins over allow, so a broad allow
+rule can't accidentally re-enable an `rm`. After a week of adding rules as they come up, most
+sessions stop prompting anyway.
+:::
+
 ### The double Esc
 
 The most useful trick people don't know about. When Claude heads in the wrong direction, press `Esc`

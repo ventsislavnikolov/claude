@@ -41,6 +41,8 @@ skills.
 | `/init` | Analyzes the codebase and generates a `CLAUDE.md` describing the project, its build/test commands, and its conventions. Run it once, then maintain it by hand. | `/init` |
 | `/clear` | Wipes the conversation history and starts fresh. The fastest way to get quality back when Claude is buried under stale context. | `/clear` |
 | `/compact` | Summarizes the conversation into a short recap and frees up context while keeping the thread. Also takes instructions about what to preserve. | `/compact keep the API decisions` |
+| `/context` | Breaks down what is actually occupying the context window — system prompt, `CLAUDE.md`, file contents, each MCP server's tools — as a share of the total. The tool for diagnosing bloat instead of guessing at it. | `/context` |
+| `/rewind` | Rolls the conversation back to an earlier point without starting over. Cheaper than `/clear` when only the last few turns went wrong. | `/rewind` |
 | `/resume` | Opens a list of previous sessions and continues the one you pick — with all of its context. | `/resume` |
 | `/memory` | Opens the memory files (project- and user-level `CLAUDE.md`) for editing in your editor. | `/memory` |
 | `/cd` | Moves the session to a new working directory — every tool call and relative path resolves from there. Handy for hopping between projects without restarting. | `/cd ../claude-library` |
@@ -57,6 +59,7 @@ continuing the same work but the context has grown heavy.
 | `/config` | Opens Claude Code's settings — theme, notifications, editor behavior, and more. | `/config` |
 | `/model` | Shows or switches the model for the session. With no argument it opens a picker. | `/model opus` |
 | `/status` | Prints diagnostics: account, active model, version, working directory, connected services. | `/status` |
+| `/statusline` | Sets up the line at the bottom of the terminal. Describe what you want on it — model, context percentage, cost, branch — and it generates the script. A permanent readout instead of running `/context` and `/cost` by hand. | `/statusline show model, context % and cost` |
 | `/cost` | Shows the tokens used and the cost of the current session. | `/cost` |
 | `/login` | Sign in or switch Anthropic accounts. | `/login` |
 | `/help` | Lists every available command with a one-line description. | `/help` |
@@ -76,6 +79,7 @@ Announced by Boris Cherny (August 2026). Not present in older builds — if it's
 | `/mcp` | Manages MCP servers: connection status, available tools, OAuth authentication. | `/mcp` |
 | `/permissions` | Review and edit the permission rules — what's allowed, what asks, and what's denied. | `/permissions` |
 | `/review` | Reviews a pull request and leaves comments on the code. | `/review 271` |
+| `/loop` | Reruns a prompt on an interval inside the same session, interrupting you only when something needs attention. Also takes one-off reminders in plain language. | `/loop 5m check the deployment` |
 
 ## Habits worth forming
 
@@ -87,6 +91,11 @@ Announced by Boris Cherny (August 2026). Not present in older builds — if it's
   <AccordionItem title="/compact with instructions beats /compact without" icon="fold-vertical">
     Tell it what to keep and the summary stays useful. Otherwise you risk losing exactly the detail
     you'll need ten minutes later.
+  </AccordionItem>
+  <AccordionItem title="/context when a session starts feeling slow or dumb" icon="chart-pie">
+    Don't guess at what's eating the window. The breakdown usually points at one thing — an
+    oversized `CLAUDE.md`, or an MCP server whose tool definitions are resident whether you use
+    them or not.
   </AccordionItem>
   <AccordionItem title="/cost before a long session" icon="wallet">
     A quick sense of how expensive your way of working is — especially if you spin up a lot of

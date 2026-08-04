@@ -86,6 +86,43 @@ fixing code is a new session), and Claude reads the code carefully instead of ty
 Plan mode changes nothing — it only reads and proposes. You leave it once you approve the plan.
 :::
 
+## Steer, don't dictate
+
+A prompt that hands over a decision usually beats one that hands over an instruction. "Write a
+function that does X" gets you X. "How should we handle X?" gets you the reasoning first — which is
+where the mistakes surface, while they're still cheap to fix.
+
+Four habits in that spirit:
+
+<Accordion>
+  <AccordionItem title="Make it ask until it's sure" icon="circle-question-mark">
+    Plan mode does some of this on its own, but you can ask for it directly: *"keep asking me
+    questions until you're 95% confident you understand exactly what I need."* A round of questions
+    up front costs less than three rounds of revisions after.
+  </AccordionItem>
+  <AccordionItem title="Bake verification into the to-do list" icon="list-checks">
+    When Claude plans out its to-dos, ask for the checks to be items too — build the page, *then*
+    screenshot it and confirm the layout, *then* open the browser and confirm nothing errors. Adding
+    *"don't move to the next item until you're 95% confident this one is done"* keeps it from
+    sprinting past a broken step.
+  </AccordionItem>
+  <AccordionItem title="Cut it off early" icon="scissors">
+    The moment it's heading the wrong way, `Esc` and re-ask. Every token spent going the wrong
+    direction is context you don't get back.
+  </AccordionItem>
+  <AccordionItem title="Push back on merely-okay output" icon="thumbs-down">
+    "That works, but do a more elegant version" is a valid prompt. When the second attempt is the
+    one you wanted, write down *why* — in `CLAUDE.md` or the relevant skill — so you don't have to
+    ask twice next time.
+  </AccordionItem>
+</Accordion>
+
+### ultrathink
+
+Typing `ultrathink` in a prompt raises the thinking budget before Claude answers. Worth it for
+architecture decisions, gnarly debugging, and large refactors — or when two normal attempts haven't
+landed. Not worth it for a one-line fix; you're paying for reasoning tokens either way.
+
 ## Managing context
 
 <Accordion>
@@ -132,13 +169,26 @@ regenerate it when the upstream docs move.
 Several Claude sessions in the same directory get in each other's way — they edit the same files and
 confuse one another. The answer is **git worktrees**: a separate working directory per branch.
 
+Claude Code will make one for you:
+
+```bash
+claude --worktree feature-auth    # or -w
+```
+
+That creates an isolated workspace on its own branch and starts the session in it. Run it again in
+another terminal with a different name and you have two sessions on the same project that can't
+overwrite each other. Add `--tmux` to open it in a tmux session. When you're done, the branches merge
+back like any other.
+
+The manual equivalent, if you want the directories somewhere specific:
+
 ```bash
 git worktree add ../proj-feature-auth -b feature/auth
 git worktree add ../proj-bugfix-123 -b fix/issue-123
 ```
 
-You run `claude` in each directory separately. The sessions are fully isolated — only `.git` is
-shared.
+You then run `claude` in each directory separately. Either way the sessions are fully isolated — only
+`.git` is shared.
 
 When you're done:
 
@@ -171,6 +221,11 @@ They're managed with `/agents`; the definitions live in `.claude/agents/`.
 Give a subagent a clear task **and** a clear response format. It can't see your conversation —
 everything it needs has to be in the prompt.
 :::
+
+A subagent doesn't have to run the same model as your session. For work that's high-volume but not
+subtle — reading a lot of files, scraping, first-pass triage — put the subagents on a cheaper model
+and let the main session stay on the expensive one. You pay the low rate for the tokens that get
+read and the high rate only for the summary that comes back.
 
 ## In short
 
