@@ -74,6 +74,67 @@ Claude sometimes reaches for subagents instead, and subagents share the same age
 panel alone doesn't prove a team formed. Ask again and explicitly request an agent team.
 :::
 
+### Writing the spawn prompt
+
+A teammate wakes up with your project and no memory of your conversation, so the spawn prompt is the
+entire briefing. A shape that holds up:
+
+<Steps>
+  <Step title="The goal">
+    What's being built and what "done" looks like. Without it a teammate knows its own task but not
+    why it has neighbours — and it can't tell when a message from one of them matters.
+  </Step>
+  <Step title="The team">
+    How many teammates, and which model they run.
+  </Step>
+  <Step title="Each teammate">
+    Its role, the files or directory it **owns**, what it produces, and **who it messages when it's
+    done**.
+  </Step>
+  <Step title="The final deliverables">
+    What you want back once the lead has synthesized everything.
+  </Step>
+</Steps>
+
+```text
+Goal: build a working full-stack app with a REST API and a React frontend.
+The end result should run on http://localhost:3000 with users and posts,
+plus a QA report confirming it works.
+
+Spawn 3 teammates using Sonnet:
+
+1. Backend dev — build the REST API in src/api/. Create routes for users
+   and posts. When done, message the frontend dev with the endpoints.
+2. Frontend dev — build the React UI in src/components/. Wait for the
+   backend dev's message with the API contract, then wire up the fetches.
+3. QA — write tests in tests/. Start with unit scaffolding, then add
+   integration tests once backend and frontend report done.
+
+Final deliverables:
+- a running app on http://localhost:3000
+- tests/report.md with pass/fail results
+- docs/build-summary.md — what was built, key decisions, how to run it
+```
+
+Both dependency edges are spelled out. *"Message the frontend dev"* and *"wait for the backend dev's
+message"* are instructions — the team doesn't infer the handoff graph from the order you listed the
+roles in.
+
+| Do | Don't |
+| --- | --- |
+| Give each teammate its own files | Let two teammates edit one file |
+| Say what the output is and where it goes | Ask for "a review" or "some improvements" |
+| Name the recipient of every handoff | Assume they'll work out who to talk to |
+| 3–5 teammates | Spawn a swarm of ten |
+| Restate the context they need | Assume your conversation carried over |
+
+:::tip
+The role worth adding even when the work would fit in fewer teammates is a **reviewer** — a QA or
+critic whose only job is to check the others' output and send it back when it isn't good enough.
+That reject-and-return loop is what converts the extra token spend into higher quality, and it's the
+thing subagents structurally can't do.
+:::
+
 ### The agent panel
 
 Teammates are listed below the prompt input in the lead's terminal.
@@ -284,6 +345,21 @@ was denied something can't relay it through another teammate to get around the c
 the classifier treats a relayed approval claim as untrusted input. Plan approval is the one designed
 exception: the lead grants teammate plan approvals without prompting you.
 :::
+
+## When something goes wrong
+
+The table below is about mistakes in how the team was set up. For what teams genuinely *can't* do,
+see [Limits](#limits).
+
+| Symptom | Fix |
+| --- | --- |
+| Teammates keep stopping on permission prompts | Pre-approve the tools they'll need in `permissions.allow` before spawning — every prompt surfaces in the lead session and blocks that teammate until you answer |
+| Deliverables overwrite each other | File ownership wasn't assigned. Say which files each teammate owns, in the spawn prompt |
+| One teammate sits idle while the others work | It has no task of its own, or a dependency never got marked complete. Give it work explicitly, or check the task list with `Ctrl+T` |
+| Burning tokens faster than expected | Fewer teammates — cost is roughly linear in active ones. Three focused usually beat five scattered |
+| Work disappears between steps | Have teammates write intermediate state to files as they go instead of holding it in context |
+| The lead approves plans you'd have rejected | It decides on its own, so put explicit accept/reject criteria in the spawn prompt |
+| A teammate is clearly going the wrong way | `Esc` interrupts it, `x` stops it. In split panes you see this in the first few turns instead of at the end |
 
 ## Limits
 
