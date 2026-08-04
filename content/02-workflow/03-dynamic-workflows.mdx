@@ -38,6 +38,25 @@ Reach for a workflow when the task is bigger than one conversation can coordinat
 step has to run across many items: a codebase-wide bug sweep, a 500-file migration, a research
 question whose sources need cross-checking, a hard plan worth drafting from several angles first.
 
+### Width or depth
+
+The feature workflows are most often confused with isn't subagents — it's [`/goal`](/reference/commands),
+because both let Claude run a long way without you. They point in different directions:
+
+| | `/goal` | Workflows |
+| --- | --- | --- |
+| Shape | **Depth** — one line of work, many passes | **Width** — many lines of work, one pass each |
+| Stops when | A condition you wrote evaluates as met | The script finishes |
+| The unit | Iterations against a target | Agents against a work-list |
+| Fails by | Looping, if "done" was never crisp | Costing a lot, if the fan-out was too broad |
+
+`/goal all tests pass and the linter is clean` keeps working until that's true. A workflow fans a
+hundred agents across a hundred files once, then synthesizes. Both punish a vague brief — one by
+never converging, the other by spending in parallel.
+
+They compose (a workflow inside a goal loop), which is powerful and an excellent way to spend a lot
+of money quickly. Bound the scope and name the deliverable before either.
+
 :::tip[The quality argument]
 Because the orchestration is code, it can encode a repeatable quality pattern — independent agents
 adversarially reviewing each other's findings before anything is reported, or several drafts of a
@@ -70,6 +89,11 @@ turn. The keyword only changes **how** the work is structured — the run stays 
 permission mode and sandboxing.
 
 <Accordion>
+  <AccordionItem title="Say “dynamic workflow”, not just “workflow”" icon="message-square">
+    The word *workflow* shows up in ordinary sentences — "my deploy workflow", "the review
+    workflow" — and Claude Code highlights it without that meaning you asked for one. If you want a
+    run, ask for it plainly: *"set up a dynamic workflow to…"*. The highlight is not the opt-in.
+  </AccordionItem>
   <AccordionItem title="Dismissing the keyword" icon="x">
     `Option+W` (macOS) or `Alt+W` (Windows/Linux) drops the highlight for this prompt; backspace
     right after the highlighted word works too. Turn it off for good with **Ultracode keyword

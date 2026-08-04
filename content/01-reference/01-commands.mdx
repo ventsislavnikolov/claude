@@ -81,6 +81,8 @@ Announced by Boris Cherny (August 2026). Not present in older builds — if it's
 | `/permissions` | Review and edit the permission rules — what's allowed, what asks, and what's denied. | `/permissions` |
 | `/review` | Reviews a pull request and leaves comments on the code. | `/review 271` |
 | `/loop` | Reruns a prompt on an interval inside the same session, interrupting you only when something needs attention. Also takes one-off reminders in plain language. | `/loop 5m check the deployment` |
+| `/goal` | Sets a condition Claude checks before it's allowed to stop. If the condition isn't met it keeps going, counting iterations. `/goal` alone shows the active goal, elapsed time, turns, and tokens; `/goal clear` ends it early. Needs a trusted workspace. | `/goal all tests pass and the linter is clean` |
+| `/workflows` | Browses running and completed [dynamic workflows](/workflow/dynamic-workflows) — live per-agent token usage, tools, and elapsed time, with the option to stop a run or save it as a command. | `/workflows` |
 
 ## Habits worth forming
 
