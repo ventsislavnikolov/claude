@@ -36,6 +36,50 @@ deny rule (`/permissions`) rather than looking for a `.claudeignore` — see
 [permission modes](/workflow/shortcuts).
 :::
 
+## Prompt caching
+
+The re-reading described above has a discount, and it's the reason long sessions are affordable at
+all: **prompt caching**. The unchanged prefix of your conversation — system prompt, `CLAUDE.md`,
+tool definitions, every earlier turn — is cached, and a cached re-read costs roughly **10% of fresh
+input**. It's automatic in Claude Code; there is nothing to configure. But knowing what *breaks* it
+turns several mysterious cost spikes into avoidable ones.
+
+### The clock
+
+A cache entry lives for a limited time after the last request:
+
+| Where you're running | Cache window |
+| --- | --- |
+| Claude Code on a subscription | ~1 hour |
+| API keys, and subscription overage (paying per token) | 5 minutes |
+
+Walk away from a session for longer than the window and your next message re-processes the entire
+conversation at full price — the single most common invisible cost spike. Coming back to a stale
+session is economically the same as starting over, minus the clean context. If it's been over an
+hour, prefer [the handoff pattern](#the-handoff-pattern) into a fresh session.
+
+### What breaks the cache
+
+The cache is a **prefix match**: any change near the start of the conversation invalidates
+everything after it.
+
+| Action | Effect |
+| --- | --- |
+| Switching model mid-session (`/model`) | Full re-cache — each model has its own cache, so the next request reads the whole history with no hits |
+| The **opus-plan** model setting | Resolves to Opus in plan mode and Sonnet in execution, so *every plan-mode toggle* is a model switch and starts a fresh cache. It can still pay off overall — just know the cost |
+| An MCP server connecting or disconnecting mid-session | Tool definitions sit in the prefix, so a stdio server's process exiting or an HTTP session expiring re-caches — without any action on your part |
+| Pausing past the cache window | Everything re-processes at full price |
+| Editing `CLAUDE.md` mid-session | **Safe** — the edit only applies when the session restarts, so the in-flight cache holds |
+
+If you're watching a token dashboard: **cache create** is the one-time cost of writing something
+into the cache; **cache read** is the ~10× cheaper reuse. A healthy long session shows large cache
+reads and modest fresh input.
+
+:::note
+The full mechanics are in the official docs:
+[Prompt caching](https://code.claude.com/docs/en/prompt-caching).
+:::
+
 ## The five moves after any reply
 
 Once Claude finishes a turn, you always have five options, and picking deliberately is most of the
@@ -160,6 +204,11 @@ does all three — pays to re-read the discovery phase on every turn of the buil
 ## Habits, in order of payoff
 
 <Accordion>
+  <AccordionItem title="Work in bursts, inside the cache window" icon="timer">
+    A session you keep touching stays cheap — every turn rides the cache. A session you poke once
+    an hour re-pays for its whole history each time. Batch the work; when you're done, hand off
+    rather than leaving the session to go stale.
+  </AccordionItem>
   <AccordionItem title="Pick a reset number and hold to it" icon="gauge">
     Decide in advance what fraction of the window you'll work within, and treat crossing it as the
     signal to hand off. An arbitrary line you actually respect beats a principled one you ignore.
