@@ -120,6 +120,45 @@ Check the health endpoint and report the deployment URL.
   </AccordionItem>
 </Accordion>
 
+## A skill can be just a prompt
+
+Not every skill wraps scripts and reference files. If there's a paragraph you keep retyping — a
+review stance, a formatting rule, a request you make at the start of every project — that paragraph
+already is a skill. Save it once and it becomes one command.
+
+The clearest example is **grilling**, Matt Pocock's interview skill. Its entire body:
+
+```text
+Interview me relentlessly about every aspect of this until we reach a shared
+understanding. Walk down each branch of the decision tree, resolving dependencies
+between decisions one-by-one. For each question, provide your recommended answer.
+
+Ask the questions one at a time, waiting for feedback on each question before
+continuing. Asking multiple questions at once is bewildering.
+
+If a *fact* can be found by exploring the environment (filesystem, tools, etc.),
+look it up rather than asking me. The *decisions*, though, are mine — put each one
+to me and wait for my answer.
+
+Do not act on it until I confirm we have reached a shared understanding.
+```
+
+Why it earns a permanent slot: a brain dump always has gaps you can't see, because you don't know
+which parts of your own context are missing. An interview finds them — one question at a time, each
+arriving with a recommended answer so you're editing instead of authoring. It's the packaged form of
+the ["make it ask until it's sure" habit](/workflow/tips#steer-dont-dictate).
+
+It ships in the official plugin marketplace: run `/plugin`, install **mattpocock-skills**, then say
+*"grill me about this plan"* — or invoke it directly with the plugin prefix.
+
+:::tip[Checkpoint the answers to disk]
+A good grilling can run long, and long interviews fill the context window — exactly where answers
+from an hour ago start getting misremembered. Extend the skill to write every answer to a dated doc
+(say `brainstorms/2026-08-07-pricing.md`) as it goes. The doc becomes the durable artifact: the
+interview survives compaction, and later you can reopen it with *"grill me again — here's what
+changed."* [Chat history is not storage](/workflow/context-and-cost); a knowledge doc is.
+:::
+
 ## Supporting files
 
 A skill isn't only one file. Next to `SKILL.md` you can put:

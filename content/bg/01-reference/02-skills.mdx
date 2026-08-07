@@ -119,6 +119,46 @@ pnpm exec vercel deploy --prebuilt
   </AccordionItem>
 </Accordion>
 
+## Скилът може да е просто промпт
+
+Не всеки скил обвива скриптове и справочни файлове. Ако има абзац, който постоянно преписваш —
+позиция за ревю, правило за форматиране, молба, с която започваш всеки проект — този абзац вече е
+скил. Запиши го веднъж и той става една команда.
+
+Най-ясният пример е **grilling** — интервю скилът на Matt Pocock. Цялото му тяло:
+
+```text
+Interview me relentlessly about every aspect of this until we reach a shared
+understanding. Walk down each branch of the decision tree, resolving dependencies
+between decisions one-by-one. For each question, provide your recommended answer.
+
+Ask the questions one at a time, waiting for feedback on each question before
+continuing. Asking multiple questions at once is bewildering.
+
+If a *fact* can be found by exploring the environment (filesystem, tools, etc.),
+look it up rather than asking me. The *decisions*, though, are mine — put each one
+to me and wait for my answer.
+
+Do not act on it until I confirm we have reached a shared understanding.
+```
+
+Защо заслужава постоянно място: брейнсторм наведнъж винаги има дупки, които не виждаш, защото не
+знаеш кои части от собствения ти контекст липсват. Интервюто ги намира — въпрос по въпрос, всеки с
+препоръчан отговор, така че редактираш, вместо да съчиняваш. Това е пакетираната форма на навика
+[„карай го да пита, докато е сигурен“](/bg/workflow/tips#насочвай-не-диктувай).
+
+Идва в официалния plugin marketplace: пусни `/plugin`, инсталирай **mattpocock-skills** и кажи
+*„grill me about this plan“* — или го извикай директно с префикса на плъгина.
+
+:::tip[Checkpoint-вай отговорите на диска]
+Доброто интервю може да продължи дълго, а дългите интервюта пълнят контекстния прозорец — точно
+там, където отговорите отпреди час започват да се помнят грешно. Разшири скила да записва всеки
+отговор в датиран документ (напр. `brainstorms/2026-08-07-pricing.md`) в движение. Документът става
+трайният артефакт: интервюто преживява компактиране, а по-късно можеш да го отвориш отново с
+*„grill me again — ето какво се промени“*. [Историята на чата не е хранилище](/bg/workflow/context-and-cost);
+документът със знания — е.
+:::
+
 ## Допълнителни файлове
 
 Скилът не е само един файл. До `SKILL.md` можеш да сложиш:
