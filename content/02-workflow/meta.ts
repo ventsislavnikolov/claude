@@ -11,5 +11,6 @@ export default defineMeta({
     "agent-teams",
     "browser-automation",
     "context-and-cost",
+    "superpowers",
   ],
 });

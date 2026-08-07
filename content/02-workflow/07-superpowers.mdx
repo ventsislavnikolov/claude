@@ -1,0 +1,105 @@
+---
+title: Superpowers
+description: The Superpowers plugin — 14 skills that gate every build through clarify → design → plan → code → verify, a visual companion for design decisions, and when the token overhead pays off.
+sidebar:
+  label: Superpowers
+  icon: zap
+---
+
+**Superpowers** is a free, open-source plugin by Jesse Vincent
+([obra/superpowers](https://github.com/obra/superpowers)) that installs a set of
+[skills](/reference/skills) enforcing a disciplined development methodology. Instead of letting
+Claude start coding the moment you ask for something, every build passes through phases:
+
+```text
+clarify → design → plan → code → verify
+```
+
+Think of it as hiring a developer who does proper discovery before touching anything — versus one
+who takes your request and starts typing immediately.
+
+## Install
+
+It ships in the official plugin marketplace: run `/plugin`, install **superpowers**. When asked
+about scope, pick **user level** — the whole point is that it works in every project without
+per-repo setup.
+
+## How it works
+
+One master skill, `using-superpowers`, fires at the start of every conversation and acts as a
+**dispatcher**: it looks at the other skills and decides which ones the current task needs. Its
+rule, straight from the docs: *"If there's even a 1% chance a skill applies, invoke it before doing
+anything."*
+
+So it's set-and-forget. You don't memorize the skill list — you plan as usual and the right skills
+fire at the right moments. For extra insurance you can end a prompt with *"use any Superpowers
+skills that are relevant here."*
+
+## The 14 skills
+
+Verified against v6.1.1 in the official marketplace — grouped by phase:
+
+| Phase | Skills | What they do |
+| --- | --- | --- |
+| Orchestrator | `using-superpowers` | The dispatcher. Fires automatically every conversation. |
+| Design | `brainstorming` | Forces clarifying questions, proposes 2–3 approaches with trade-offs, requires your approval before any code. Includes the visual companion. |
+| Planning | `writing-plans` | Hyper-detailed plans: every task is 2–5 minutes of work with exact file paths, no "TBD" allowed. Plans are saved to dated files. |
+| Execution | `executing-plans`, `subagent-driven-development`, `dispatching-parallel-agents` | Walks the plan task by task with safety stops; dispatches a fresh [subagent](/workflow/tips) per task with built-in review; runs independent problems in parallel. |
+| Quality gates | `test-driven-development`, `systematic-debugging`, `verification-before-completion`, `requesting-code-review`, `receiving-code-review` | Red → green TDD; root-cause → hypothesis → fix debugging; verify before declaring done. |
+| Git | `using-git-worktrees`, `finishing-a-development-branch` | Isolated worktrees per effort and a clean branch-landing procedure. |
+| Meta | `writing-skills` | Teaches Claude to author new skills TDD-style: failing test scenario first, then the skill that passes it. |
+
+## The visual companion
+
+The brainstorming skill's standout feature: *"Some of what we're working on might be easier to
+explain if I can show you in a web browser."* Say yes and it pushes an interactive dashboard to
+localhost with 2–3 concrete options — layout approaches, visual style directions, component
+variants — each with pros, cons, and a recommendation. Your click feeds back into the session and
+the agent continues from your choice.
+
+This is the cheapest possible place to catch a misunderstanding: you correct the direction **before**
+the tokens are spent building the wrong thing.
+
+:::note
+The visual companion is new and can be token-intensive. That's a deliberate trade — see below.
+:::
+
+## When it pays off
+
+The counterintuitive result from a 12-run experiment (6 with, 6 without, same prompts, zero human
+interaction): Superpowers used **less**, not more — about 9% cheaper and 14% fewer tokens overall.
+
+| Task size | Verdict |
+| --- | --- |
+| Simple | **Skip it.** The clarify/design overhead (~8%) buys nothing on a straightforward request. |
+| Medium | Cheaper runs, fewer tokens, measurably better code structure and error handling. |
+| Complex | The savings trend grows with complexity. |
+
+The logic mirrors [the economics of context](/workflow/context-and-cost): the value isn't in the
+extra steps — it's in preventing expensive retries and backtracking. More tokens on planning is
+cheaper than four or five revision cycles. Two details worth stealing from the results: runs
+*without* the methodology had 2–3× the variance in token usage, and domain knowledge / spec
+compliance did **not** improve — discipline fixes process, not knowledge.
+
+:::warning[Directional, not proof]
+12 automated runs across three small tasks is a small sample, and Superpowers is designed for a
+human in the loop — the experiment ran with nobody answering its questions. Treat the numbers as a
+trend, not a benchmark.
+:::
+
+## Superpowers or `ultraplan`?
+
+Typing `ultraplan` in a prompt triggers Claude Code's built-in intensive planning mode — but it ends
+when the plan is written; implementation is back to normal. Superpowers covers the same planning
+ground and then **stays with you through execution**: subagents per task, TDD, verification gates.
+The two aren't exclusive — but if you have Superpowers, its brainstorming phase largely replaces
+what `ultraplan` would do.
+
+<CardGroup cols={2}>
+  <Card title="Skills" href="/reference/skills" icon="sparkles">
+    What a skill is, where it lives, and how the plugin prefix works.
+  </Card>
+  <Card title="Context and cost" href="/workflow/context-and-cost" icon="coins">
+    Why preventing retries is the biggest token lever there is.
+  </Card>
+</CardGroup>
