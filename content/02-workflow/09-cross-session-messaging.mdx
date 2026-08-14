@@ -1,0 +1,200 @@
+---
+title: Cross-session messaging
+description: Messaging between your own Claude Code sessions — ListAgents and SendMessage, @-mentions, delivery across machines, inbound controls, the inbox socket, and how to restrict or turn it off.
+sidebar:
+  label: Cross-session messaging
+  icon: messages-square
+---
+
+**Cross-session messaging** lets Claude deliver a message from one of your Claude Code sessions to
+another. When a change in one session breaks what another is building on, Claude can warn that
+session before you notice. When one session settles a question another is blocked on, Claude sends
+the answer across instead of you copy-pasting between terminals.
+
+A message is a **piece of text one Claude writes to another** — never conversation history or files.
+To move a whole conversation, resume the session instead.
+
+Two tools drive it: `ListAgents` discovers which agents Claude can reach, and `SendMessage` delivers
+a message to one of them by name. You never call either tool yourself — you just tell Claude what
+the other session should know.
+
+:::note
+Requires Claude Code **v2.1.224+** on macOS or Linux (including WSL 2). When a session meets the
+requirements, messaging is **on with nothing to enable**. Not available on native Windows, Amazon
+Bedrock, Claude Platform on AWS, Google Cloud's Agent Platform, or Microsoft Foundry — and it stays
+off when `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`, `DISABLE_TELEMETRY`, `DO_NOT_TRACK`, or
+`DISABLE_GROWTHBOOK` turns off the feature-flag evaluation it depends on.
+:::
+
+## Versus the other multi-session features
+
+Messaging is for **independent sessions you start and steer yourself**. Claude Code has a dedicated
+feature for each other way to run multiple sessions:
+
+| You want | Use instead |
+| --- | --- |
+| Continue one conversation in another terminal | Resume the session (`claude --resume`) |
+| A coordinated team Claude spawns and supervises | [Agent teams](/workflow/agent-teams) |
+| Watch and steer many sessions from one place | Agent view |
+| Steer a session from your phone or another device | Remote Control |
+| Push external events (CI results, chat) into a session | Channels |
+
+The common cases where messaging *is* the right tool: handing over a finding or a decision to the
+session working on the affected area, coordinating parallel worktrees on the same repo, getting
+status back from a long-running migration or test run, and reaching your sessions on other machines
+or on the web.
+
+## Sending a message
+
+Tell Claude what you want the other session to know or do — Claude finds the target with
+`ListAgents` and writes the actual message itself:
+
+```text
+Ask the session running in my other terminal whether the migration finished
+```
+
+```text
+Explain what we just did to the session working on the payments API
+```
+
+Claude can also decide to send a message **without being asked**, for example after making a change
+that affects work another session is doing.
+
+### Naming the target with @
+
+Type `@` plus the first letters of the session's name and pick it from the typeahead (v2.1.232+),
+the same way you @-mention a subagent:
+
+```text
+Let @api-worker know the schema migration finished
+```
+
+The suggestions show your other live sessions on this machine once you've typed at least one letter
+after the `@`. A cloud or Remote Control session only appears after Claude has already listed or
+messaged your sessions beyond this machine. When several live sessions answer to the mentioned name,
+Claude asks which one you mean before sending.
+
+### Session names
+
+A session answers to the name you set with `/rename` or the `--name` flag. Without one, Claude Code
+derives it from the working directory's folder name, such as `my-app-3f` in a `my-app` directory.
+Name collisions on the same machine resolve automatically — the session that already has the name
+keeps it, yours gets a variant. When several sessions still share a name, Claude adds a short
+identifier to disambiguate.
+
+Run `/list-agents` (also `/peers`) to see for yourself what Claude can reach: subagents in the
+current session, your other local sessions, your cloud sessions, and your Remote Control sessions on
+other machines (the latter two only while this session is connected to Remote Control).
+
+## How messages travel
+
+| Where the other session runs | How the message travels |
+| --- | --- |
+| On this machine | Over a per-session socket, never through Anthropic servers |
+| On another of your machines | Through Anthropic servers, over that machine's Remote Control connection |
+| On Claude Code on the web | Through Anthropic servers, straight to the cloud session |
+
+Same-machine discovery works through files on disk — two sessions must see the same filesystem, so a
+session inside a container and one on the host can't reach each other, while two sessions inside the
+same container can.
+
+Starting a conversation with a session on another machine needs v2.1.225+ and a target that appears
+in the listing. If this session isn't connected to Remote Control when it sends beyond this machine,
+the message still goes through but carries **no reply address**, so the receiving Claude can't
+answer.
+
+## Delivery and inbound controls
+
+The receiving Claude reads a message **between tool calls** during an active turn — a running tool
+is never interrupted. An idle session starts a new turn with it. Once delivered, the message counts
+toward usage like a prompt you type.
+
+Each arriving message is checked against the receiving session's inbound controls, with three
+outcomes: **delivered**, **held** (set aside until you approve it or settings change), or
+**refused** (dropped). Set `crossSessionInbound` to pick a behaviour, or select it in the `/config`
+row **Messages from your other sessions** (v2.1.232+):
+
+| Value | Behaviour |
+| --- | --- |
+| `accept` | Every message is delivered to Claude |
+| `hold` | A notice shows for each message; nothing is delivered until an `accept` later applies |
+| `refuse` | Every message is dropped without delivery |
+
+When no value is set, Claude Code decides **per message from the two sessions' permission modes**,
+grouped into two classes — sessions that bypass permission prompts, and everyone else:
+
+- **Receiver prompts for permissions** → messages are delivered; one is held only when the sender
+  bypasses permission prompts.
+- **Receiver bypasses permission prompts** → messages are held for your approval; one is delivered
+  only when the sender also bypasses.
+
+A held message opens an approval dialog showing the sender and a preview. Approve delivers it, deny
+or dismissal drops it, and an unanswered dialog expires after the `dialogExpiry` deadline (default
+five minutes). At most 100 messages are held; past that the oldest drop. When the sender is on the
+same machine, it gets notices about holds and their outcomes.
+
+### What an incoming message can't do
+
+Claude Code tells the receiving Claude the message came **from another session, not from you**, and
+limits it accordingly:
+
+| Limit | Meaning |
+| --- | --- |
+| Can't approve anything | A message never counts as your consent to a pending permission prompt |
+| Can't change configuration | The receiving Claude won't touch permission settings or `CLAUDE.md` because another session asked |
+| Commands don't run | A `/compact` in the text arrives as plain text, never executes |
+| Permission prompts still fire | Work the message asks for goes through the receiver's own permission rules |
+
+Permission boundaries stay per-session in the other direction too: Claude is instructed never to ask
+another session for an action that was denied or blocked in its own session.
+
+## Headless sessions
+
+A long-running `claude -p` worker binds an inbox socket like an interactive session, so it can
+receive messages and appears in the listing — but it can't show the approval dialog. A default-held
+message waits out the same `dialogExpiry` deadline, then drops and reports as expired to the sender.
+To let a `-p` worker take messages unattended, start it with `crossSessionInbound: "accept"` in its
+`--settings` value. Bare mode binds no socket at all — that session can't receive messages.
+
+## The inbox socket
+
+Each messaging-enabled session binds an inbox socket, restricted to your OS user. Find the path in
+`/status` under **Peer address** (prefixed `uds:`), or as `CLAUDE_CODE_MESSAGING_SOCKET` in hooks and
+Bash commands. A per-session token is exported alongside it as `CLAUDE_CODE_MESSAGING_TOKEN`.
+
+This is the hook-and-script entry point: a hook or Bash command can post into **its own session**,
+and a verified own-child message is delivered even when the default would hold it. Where process
+evidence is missing (macOS after the poster exited, containers where Claude Code is PID 1), send
+`{"type":"auth","token":"<token>"}` as the connection's first line instead. From inside the sandbox,
+socket access is governed by `sandbox.network.allowUnixSockets`.
+
+## Restricting it
+
+| Goal | How |
+| --- | --- |
+| Approve every message that leaves this machine | `"isolatePeerMachines": true` — prompts even in `bypassPermissions` mode; a `true` from any settings scope wins |
+| Stop receiving | `"crossSessionInbound": "refuse"` |
+| Stop sending and listing | Permission deny rules naming `SendMessage` and `ListAgents` (bare tool names) |
+| Turn it off org-wide | Both of the above in managed settings |
+
+:::warning
+Denying `SendMessage` also removes messaging to subagents and [agent-team](/workflow/agent-teams)
+teammates — the same tool serves both. And a refusing session shows no visible change in `/status`
+or in other sessions' listings, so confirm the setting from configuration, not from observation.
+:::
+
+## Limits
+
+- **Plain text only** — no structured payloads across sessions; agent-team protocol messages stay
+  within a team.
+- **Loops throttle themselves** — repeated messages are rate-limited per sender, identical repeats
+  in a short window are dropped, and at most 50 accepted messages wait to be read per session.
+
+<CardGroup cols={2}>
+  <Card title="Agent teams" href="/workflow/agent-teams" icon="users">
+    Messaging within one coordinated team that Claude spawns and supervises.
+  </Card>
+  <Card title="Tips" href="/workflow/tips" icon="lightbulb">
+    Subagents, context management, and git worktrees for parallel sessions.
+  </Card>
+</CardGroup>
