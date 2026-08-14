@@ -1,0 +1,126 @@
+---
+title: Prompting Fable 5
+description: Six habits for prompting Claude Fable 5 — give it the why, negative prompting, letting it act, proof-of-done, the reasoning trap, and saying less — with paste-ready prompt blocks.
+sidebar:
+  label: Prompting Fable 5
+  icon: quote
+---
+
+Six habits for getting the most out of **Claude Fable 5**, distilled from Anthropic's prompting
+guide by Nate Herk in
+[How Anthropic Engineers Actually Prompt Fable 5](https://www.youtube.com/watch?v=vcU85OrwuV0).
+Five of them work on any model; one is Fable-specific. Each comes with a paste-ready block — the
+long-term move is to bake these into `CLAUDE.md`, your skills, and your agents rather than retyping
+them per prompt.
+
+The premise: Fable follows short, clear direction better than older models, so the leverage has
+moved from *spelling everything out* to *pointing it at the right intent*.
+
+## 1. Give it the why — *any model*
+
+One line of "here is why I am asking" does more than piling on step-by-step detail. Fable does
+better when it understands your intent — context lets it connect the task to the right information
+instead of guessing what you meant.
+
+Instead of *"Write me an email to a client about the delay."*:
+
+```text
+I'm working on [the bigger task] for [who it's for]. They need [what the
+output enables]. With that in mind: [your request].
+```
+
+## 2. Tell it what NOT to do — *any model*
+
+A more capable model acts on its own more readily: drafting emails, making backups, refactoring
+around a one-line fix. The sentence that saves you starts with "do not". Anthropic's own guide is
+full of negative prompting — *"don't add features"*, *"do the simplest thing that works"*.
+
+Instead of *"Take a look at this problem and handle it."*:
+
+```text
+When I'm describing a problem or asking a question, the deliverable is your
+assessment. Report what you find and stop. Don't fix, send, edit, or delete
+anything until I say go. Do the simplest thing that works, and skip cleanup
+I didn't ask for.
+```
+
+## 3. Let it act once it has enough — *any model*
+
+More deliberation is not better. On a model that can run for minutes, endless option-surveying just
+burns time and money on choices it will never use.
+
+Instead of *"Research everything and make a full plan before you do anything."*:
+
+```text
+When you have enough information to act, act. Don't re-derive what we've
+already settled or narrate options you won't pursue. If you're weighing a
+choice, give a recommendation, not an exhaustive survey.
+```
+
+### Match the effort level to the task
+
+Fable's effort settings are part of the same habit — don't pay for deliberation the task doesn't
+need:
+
+| Effort | Use for |
+| --- | --- |
+| `high` (default) | Most tasks. |
+| `xhigh` | The most capability-sensitive workloads only. |
+| `medium` / `low` | Routine work. Fable on `low` lands near Opus 4.8 on `xhigh` — for less money. |
+
+The same logic applies one level up: you probably only need to reach for Fable at all for maybe
+5–15% of tasks. Using it for everything is overkill, especially once you're paying usage credits.
+
+## 4. Make it prove it — *any model*
+
+"Done and working" is a claim, not a fact. Anthropic's own testing found this one line nearly
+eliminated made-up status reports, even on tasks built to provoke them. This is the one most worth
+baking into every skill and agent you own.
+
+Instead of *"Is it done and working? Great, thanks."*:
+
+```text
+Before you tell me something is done, point to the result that proves it.
+Only report work you can show evidence for. If something isn't verified,
+say so plainly instead of guessing.
+```
+
+## 5. Stop asking it to "show its reasoning" — *Fable-specific*
+
+This one is about a line to **remove**. The video reports that a standing *"explain your
+reasoning"* instruction — especially in a system prompt — can trigger a refusal or get the request
+silently rerouted to Opus 4.8: Fable runs a safety check before answering, and asking the model to
+reveal its private reasoning is one of the buckets that trips it (alongside anything that looks
+like hacking or dangerous biology). On the API the response shows which model actually answered;
+in the apps you may not notice the swap.
+
+There's no paste block here — just audit your `CLAUDE.md` and system prompts for standing
+"show/explain your reasoning" lines and take them out.
+
+## 6. Say less, not more — *any model*
+
+One line beats twelve. Because Fable is smart enough — especially wrapped in a good environment of
+context, tools, and skills — a short instruction now steers as well as spelling out every rule by
+name. This doesn't contradict habit 1: adding the *why* is one sentence of context, not bloat.
+
+Instead of *"Rule one: be concise. Rule two: … Rule three: …"*:
+
+```text
+Lead with the outcome, keep it simple, and pause only when the work truly
+needs me.
+```
+
+:::note[Pricing, as of the video (July 2026)]
+Fable 5 costs double Opus — $10 per million input tokens and $50 per million output tokens — and
+its no-extra-cost promotional period on Claude plans (up to 50% of weekly limits) was set to end
+July 7, 2026. Check current terms before leaning on it for routine work.
+:::
+
+<CardGroup cols={2}>
+  <Card title="Tips" href="/workflow/tips" icon="lightbulb">
+    The broader habits — `CLAUDE.md`, plan mode, steering, and context management.
+  </Card>
+  <Card title="Context and cost" href="/workflow/context-and-cost" icon="coins">
+    Why token economics reward short prompts and prevented retries.
+  </Card>
+</CardGroup>
