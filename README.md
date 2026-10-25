@@ -8,7 +8,7 @@ Astro.
 
 ## Requirements
 
-Node.js 22.12 or newer and `pnpm`.
+Node.js 24.22.1 or a newer 24.x (pinned in `.nvmrc`) and `pnpm`.
 
 ## Running
 
