@@ -3,6 +3,9 @@
 # so the install also works on whatever pnpm version the CI/host picks.
 allowBuilds:
   esbuild: true
+  # Install-time telemetry (blume → @asyncapi/parser → @stoplight/spectral-core);
+  # nothing needs it to run.
+  "@scarf/scarf": false
 
 onlyBuiltDependencies:
   - esbuild
